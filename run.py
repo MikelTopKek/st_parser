@@ -1,6 +1,4 @@
-import asyncio
-import sys
-from web_parser.main import main
+from src.main import main
 
 if __name__ == "__main__":
     main()
