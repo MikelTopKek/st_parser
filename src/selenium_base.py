@@ -11,7 +11,6 @@ from src.classes import Item
 def parse():
     driver = uc.Chrome(use_subprocess=True)
     driver.delete_all_cookies()
-    list_of_elements_parsed = []
 
     driver.get("https://smartytitans.com/live/research")
     sleep(2)
@@ -27,12 +26,10 @@ def parse():
         size_of_element = scrollable_element.size['height']
         list_of_elements = []
         for _ in range(int(number_of_elements/7)):
-            list_of_elements_parsed = []
             item_classes_list = []
             matched_elements = driver.find_elements(By.XPATH, "//tbody/tr/td")
             matched_elements_classes = driver.find_elements(By.XPATH, "//tbody/tr")
             for element in matched_elements_classes:
-                el = list(element.text.split())
                 if element.get_attribute("class").find('superior') != -1:
                     item_class = 'Uncommon'
                 elif element.get_attribute("class").find('legendary') != -1:
