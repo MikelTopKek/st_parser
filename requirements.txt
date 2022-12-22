@@ -1,2 +1,4 @@
+psycopg2_binary==2.9.5
 selenium==4.7.2
+SQLAlchemy==1.4.45
 undetected_chromedriver==3.1.6
