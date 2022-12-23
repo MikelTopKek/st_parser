@@ -1,17 +1,87 @@
-class Item:
-    def __init__(self, name, market, tier, item_type, image, gold_qty, gems_qty, gold_price, gems_price, base_value, item_class):
-        self.name = name
-        self.market = market
-        self.tier = tier
-        self.item_type = item_type
-        self.image = image
-        self.gold_qty = gold_qty
-        self.gems_qty = gems_qty
-        self.gold_price = gold_price
-        self.gems_price = gems_price
-        self.base_value = base_value
-        self.item_class = item_class
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+import enum
 
-    def __str__(self):
-        return f'Name:{self.name}; Market:{self.market}; Tier:{self.tier}; Item type:{self.item_type};' \
-               f' Gold:{self.gold_price}; Gems:{self.gems_price}; Item class:{self.item_class};'
+
+class ItemClass(enum.Enum):
+    weapon = "weapon"
+    armor = "armor"
+    accessory = "accessory"
+    enchantment = "enchantment"
+    stone = "stone"
+    special_item = "special_item"
+
+
+class ItemType(enum.Enum):
+    sword = "sword"
+    axe = "axe"
+    dagger = "dagger"
+    mace = "mace"
+    spear = "spear"
+    bow = "bow"
+    wand = "wand"
+    stave = "stave"
+    gun = "gun"
+    crossbow = "crossbow"
+    heavy_armor = "heavy_armor"
+    light_armor = "light_armor"
+    clothes = "clothes"
+    helmet = "helmet"
+    rogue_hat = "rogue_hat"
+    magician_hat = "magician_hat"
+    gauntlets = "gauntlets"
+    gloves = "gloves"
+    heavy_footwear = "heavy_footwear"
+    light_footwear = "light_footwear"
+    herbal_medicine = "herbal_medicine"
+    potion = "potion"
+    spell = "spell"
+    shield = "shield"
+    ring = "ring"
+    amulet = "amulet"
+    cloak = "cloak"
+    familiar = "familiar"
+    meal = "meal"
+    dessert = "dessert"
+    runestone = "runestone"
+    moonstone = "moonstone"
+
+
+Base = declarative_base()
+
+
+class Item(Base):
+    __tablename__ = "item"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    tier = Column(Integer)
+    item_class = Column(Enum(ItemClass))
+    item_type = Column(Enum(ItemType))
+    image = Column(String)
+    base_gold_value = Column(String)
+    merchant_exp = Column(Integer)
+    worker_exp = Column(Integer)
+    worker1 = Column(String)
+    worker2 = Column(String)
+    worker3 = Column(String)
+    favor = Column(Integer)
+    airship_power = Column(Integer)
+    collection_score = Column(Integer)
+    energy_score = Column(Integer)
+    energy_cost = Column(Integer)
+    base_crafting_time = Column(String)
+
+    def __repr__(self) -> str:
+        return f'Item {Item.name}; Tier:{Item.tier};'
+
+
+class MarketStats(Base):
+    __tablename__ = "marketstats"
+    id = Column(Integer, primary_key=True)
+    item_id = relationship('Item', foreign_keys='Item.id', cascade="all, delete-orphan")
+    gold_price = Column(Integer)
+    gold_qty = Column(Integer)
+    gems_price = Column(Integer)
+    gems_qty = Column(Integer)
+    received_at = Column(DateTime)
