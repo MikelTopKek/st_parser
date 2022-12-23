@@ -1,9 +1,9 @@
+from time import sleep
+
+import undetected_chromedriver as uc
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.by import By
-
-import undetected_chromedriver as uc
-from time import sleep
 
 from src.classes import Item
 

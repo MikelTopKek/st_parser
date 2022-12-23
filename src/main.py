@@ -1,9 +1,10 @@
+import psycopg2
+from sqlalchemy import (Column, Integer, MetaData, String, Table,
+                        create_engine, text)
 from sqlalchemy.ext.declarative import declarative_base
 
 from src.selenium_base import parse
-from sqlalchemy import create_engine, text
-import psycopg2
-from sqlalchemy import Table, Column, Integer, String, MetaData
+
 from .classes import Item, MarketStats
 
 meta = MetaData()

@@ -1,7 +1,8 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum, DateTime
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 import enum
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 class ItemClass(enum.Enum):
