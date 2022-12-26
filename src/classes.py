@@ -1,8 +1,17 @@
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine
+
+from sqlalchemy.orm import relationship, sessionmaker
+
+
+from sqlalchemy.orm import declarative_base
+Base = declarative_base()
+
+engine = create_engine('postgresql+psycopg2://postgres:postgres@db:5432/postgres')
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 class ItemClass(enum.Enum):
@@ -49,9 +58,6 @@ class ItemType(enum.Enum):
     moonstone = "moonstone"
 
 
-Base = declarative_base()
-
-
 class Item(Base):
     __tablename__ = "item"
     id = Column(Integer, primary_key=True)
@@ -86,3 +92,6 @@ class MarketStats(Base):
     gems_price = Column(Integer)
     gems_qty = Column(Integer)
     received_at = Column(DateTime)
+
+
+Base.metadata.create_all(engine)
