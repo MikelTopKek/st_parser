@@ -55,12 +55,21 @@ class ItemType(enum.Enum):
     xm = "don`t know))"
 
 
+class ItemQuality(enum.Enum):
+    legendary = "legendary"
+    epic = "epic"
+    uncommon = "uncommon"
+    flawless = "flawless"
+    common = "null"
+
+
 @dataclass(init=True)
 class MarketStats(Base):
     __tablename__ = "marketstats"
 
     id: int = Column(Integer, primary_key=True)
-    item_id: int = Column(Integer, ForeignKey("item.id"))
+    item_id: str = Column(String, ForeignKey("item.uid"))
+    quality: Enum(ItemQuality) = Column(Enum(ItemQuality))
     gold_price: int = Column(Integer)
     gold_qty: int = Column(Integer)
     gems_price: int = Column(Integer)
@@ -72,8 +81,8 @@ class MarketStats(Base):
 class Item(Base):
     __tablename__ = "item"
 
-    id: int = Column(Integer, primary_key=True)
-    uid: str = Column(String)
+    # id: int = Column(Integer, primary_key=True)
+    uid: str = Column(String, primary_key=True)
     # item_class: Enum(ItemClass) = Column(Enum(ItemClass))
     item_type: Enum(ItemType) = Column(Enum(ItemType))
     name: str = Column(String)
