@@ -3,7 +3,7 @@ from sqlalchemy import (Column, Integer, MetaData, String, Table,
                         create_engine, text)
 from src.selenium_base import parse
 
-from .classes import Item, MarketStats, Base
+from .models import Item, MarketStats, Base
 from .data_creation import creating_data
 
 meta = MetaData()
