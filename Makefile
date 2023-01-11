@@ -8,3 +8,9 @@ start:
 
 start_db:
 	docker-compose -f docker-compose.yml up db;
+
+stop:
+	docker-compose -f docker-compose.yml stop;
+
+down:
+	docker-compose -f docker-compose.yml down;
