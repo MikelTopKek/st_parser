@@ -1,12 +1,14 @@
 import json
 
 import requests
+from sqlalchemy import MetaData, create_engine
 
-from src.models import Item, Session, ItemType
+from src.models import Item, Session, ItemType, MarketStats, engine, session
 
 ITEM_NAMES_URL = "https://smartytitans.com/assets/gameData/texts_en.json"
 ITEM_SHOP_URL = "https://smartytitans.com/assets/gameData/items.json"
 ITEM_LIVE_URL = "https://smartytitans.com/api/item/last/all"
+local_session = session
 
 
 def get_data(url, file_name):
@@ -26,10 +28,21 @@ def get_fresh_data():
     get_data(ITEM_SHOP_URL, "fresh_data.json")
 
 
+def get_live_data():
+    get_data(ITEM_LIVE_URL, "live_data.json")
+
+
 def create_item(item_data):
-    local_session = Session()
+
     new_item = Item(**item_data)
     local_session.add(new_item)
+    local_session.commit()
+
+
+def create_marketstats_item(item_data, item):
+    new_item_market_stats = MarketStats(**item_data)
+    local_session.add(new_item_market_stats)
+    item.marketstats.append(new_item_market_stats)
     local_session.commit()
 
 
@@ -64,7 +77,6 @@ def creating_data():
     item_values_dict = dict(zip(item_names, item_values))
     with open("fresh_data.json", 'r') as file:
         data = json.load(file)
-        items = {}
         for field in data:
             if data[field]["uid"] in ['uncommon', 'flawless', 'epic', 'legendary']:
                 continue
@@ -93,9 +105,28 @@ def creating_data():
                 create_item(item_data)
             except Exception:
                 print(Exception)
-            # print(f'{ItemType[data[field]["type"]].value}----{data[field]["type"]}')
-            # try:
-            #     item_name = item_values_dict[data[field]["uid"]]
-            #     print(f'Name: {item_name}, uid:{data[field]["uid"]}, Type:{data[field]["type"]}')
-            # except KeyError:
-            #     print(f'Name(uid): {data[field]["uid"]}, Type:{data[field]["type"]}')
+
+
+def create_live_data():
+
+    get_live_data()
+
+    with open("live_data.json", 'r') as file:
+        data = json.load(file)
+
+        for live_item in data["data"]:
+            # item = Item.query.get(live_item["uid"])
+            if live_item["tType"] == "o":
+                try:
+                    item = session.query(Item).get(live_item["uid"])
+                    item_data = {
+                         'item_id': item.uid,
+                         'gold_price': live_item["goldPrice"],
+                         'gold_qty': live_item["goldQty"],
+                         'gems_price': live_item["gemsPrice"],
+                         'gems_qty': live_item["gemsQty"],
+                         'received_at': live_item["createdAt"],
+                    }
+                    create_marketstats_item(item_data, item)
+                except Exception:
+                    print(f'Error with {live_item["uid"]}')
