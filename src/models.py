@@ -17,48 +17,42 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-class ItemClass(enum.Enum):
-    weapon = "weapon"
-    armor = "armor"
-    accessory = "accessory"
-    enchantment = "enchantment"
-    stone = "stone"
-    special_item = "special_item"
-
-
 class ItemType(enum.Enum):
-    sword = "sword"
-    axe = "axe"
-    dagger = "dagger"
-    mace = "mace"
-    spear = "spear"
-    bow = "bow"
-    wand = "wand"
-    stave = "stave"
-    gun = "gun"
-    crossbow = "crossbow"
-    heavy_armor = "heavy_armor"
-    light_armor = "light_armor"
-    clothes = "clothes"
-    helmet = "helmet"
-    rogue_hat = "rogue_hat"
-    magician_hat = "magician_hat"
-    gauntlets = "gauntlets"
-    gloves = "gloves"
-    heavy_footwear = "heavy_footwear"
-    light_footwear = "light_footwear"
-    herbal_medicine = "herbal_medicine"
-    potion = "potion"
-    spell = "spell"
-    shield = "shield"
-    ring = "ring"
-    amulet = "amulet"
-    cloak = "cloak"
-    familiar = "familiar"
-    meal = "meal"
-    dessert = "dessert"
-    runestone = "runestone"
-    moonstone = "moonstone"
+    ws = "sword"
+    wa = "axe"
+    wd = "dagger"
+    wm = "mace"
+    wp = "spear"
+    wb = "bow"
+    wt = "staff"
+    ww = "wand"
+    wg = "gun"
+    wc = "crossbow"
+    ah = "heavy_armor"
+    am = "light_armor"
+    al = "clothes"
+    hh = "helmet"
+    hm = "rogue_hat"
+    hl = "magician_hat"
+    gh = "gauntlets"
+    gl = "gloves"
+    bh = "heavy_footwear"
+    bl = "light_footwear"
+    uh = "herbal_medicine"
+    up = "potion"
+    us = "spell"
+    xs = "shield"
+    xr = "ring"
+    xa = "amulet"
+    xc = "cloak"
+    xf = "familiar"
+    fm = "meal"
+    fd = "dessert"
+    z = "element/spirit"
+    m = "other"
+
+    xu = "don`t know)"
+    xm = "don`t know))"
 
 
 @dataclass(init=True)
@@ -79,7 +73,8 @@ class Item(Base):
     __tablename__ = "item"
 
     id: int = Column(Integer, primary_key=True)
-    item_class: Enum(ItemClass) = Column(Enum(ItemClass))
+    uid: str = Column(String)
+    # item_class: Enum(ItemClass) = Column(Enum(ItemClass))
     item_type: Enum(ItemType) = Column(Enum(ItemType))
     name: str = Column(String)
     tier: int = Column(Integer)
