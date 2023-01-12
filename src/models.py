@@ -1,3 +1,4 @@
+import datetime
 import enum
 from dataclasses import dataclass
 from typing import List
@@ -60,10 +61,9 @@ class ItemQuality(enum.Enum):
     epic = "epic"
     uncommon = "uncommon"
     flawless = "flawless"
-    common = "null"
+    common = "common"
 
 
-@dataclass(init=True)
 class MarketStats(Base):
     __tablename__ = "marketstats"
 
@@ -75,9 +75,8 @@ class MarketStats(Base):
     gems_price: int = Column(Integer)
     gems_qty: int = Column(Integer)
     received_at: DateTime = Column(DateTime)
+    created_at: DateTime = Column(DateTime, default=datetime.datetime.utcnow())
 
-
-@dataclass(init=True)
 class Item(Base):
     __tablename__ = "item"
 
@@ -100,7 +99,7 @@ class Item(Base):
     energy_score: int = Column(Integer)
     energy_cost: int = Column(Integer)
     base_crafting_time: str = Column(String)
-    marketstats: List["MarketStats"] = relationship("MarketStats")
+    # marketstats: List["MarketStats"] = relationship("MarketStats")
 
 
 metadata.create_all(engine)

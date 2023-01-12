@@ -1,9 +1,10 @@
+import datetime
 import json
 
 import requests
 from sqlalchemy import MetaData, create_engine
 
-from src.models import Item, Session, ItemType, MarketStats, engine, session
+from src.models import Item, Session, ItemType, MarketStats, engine, session, ItemQuality
 
 ITEM_NAMES_URL = "https://smartytitans.com/assets/gameData/texts_en.json"
 ITEM_SHOP_URL = "https://smartytitans.com/assets/gameData/items.json"
@@ -39,10 +40,9 @@ def create_item(item_data):
     local_session.commit()
 
 
-def create_marketstats_item(item_data, item):
+def create_marketstats_item(item_data):
     new_item_market_stats = MarketStats(**item_data)
     local_session.add(new_item_market_stats)
-    item.marketstats.append(new_item_market_stats)
     local_session.commit()
 
 
@@ -107,6 +107,15 @@ def creating_data():
                 print(Exception)
 
 
+def check_is_none(number):
+    if number is None:
+        return 0
+    else:
+        return number
+
+
+import traceback
+
 def create_live_data():
 
     get_live_data()
@@ -119,14 +128,70 @@ def create_live_data():
             if live_item["tType"] == "o":
                 try:
                     item = session.query(Item).get(live_item["uid"])
+                    if live_item["tag1"] is None:
+                        quality = ItemQuality.common.value
+                    else:
+                        quality = live_item["tag1"]
                     item_data = {
                          'item_id': item.uid,
-                         'gold_price': live_item["goldPrice"],
+                         'quality': quality,
+                         'gold_price': check_is_none(live_item["goldPrice"]),
                          'gold_qty': live_item["goldQty"],
-                         'gems_price': live_item["gemsPrice"],
+                         'gems_price': check_is_none(live_item["gemsPrice"]),
                          'gems_qty': live_item["gemsQty"],
                          'received_at': live_item["createdAt"],
                     }
-                    create_marketstats_item(item_data, item)
+                    create_marketstats_item(item_data)
                 except Exception:
-                    print(f'Error with {live_item["uid"]}')
+                    print(traceback.format_exc())
+
+import sqlalchemy as sa
+from sqlalchemy.sql import func
+
+def get_optimal_items():
+    item_table = Item.__table__
+    market_stats = MarketStats.__table__
+    conn = engine
+
+    recent_date = conn.execute(
+        sa.select([market_stats.c.created_at])
+        .select_from(
+            market_stats
+        )
+    .order_by(market_stats.c.created_at.desc()).limit(1)
+    ).fetchall()
+
+    res = conn.execute(
+        sa.select([item_table.c.name,
+                   item_table.c.item_type,
+                   item_table.c.tier,
+                   item_table.c.merchant_exp,
+                   market_stats.c.quality,
+                   market_stats.c.gold_price,
+                   market_stats.c.created_at])
+        .select_from(
+            item_table.join(
+                market_stats, item_table.c.uid == market_stats.c.item_id
+            )
+        )
+        .filter(sa.and_(
+            market_stats.c.created_at == recent_date[0][0],
+            market_stats.c.gold_price > 0,
+            item_table.c.item_type != ItemType.z,
+            item_table.c.merchant_exp > 50000,
+            item_table.c.tier < 11
+            # market_stats.c.quality == ItemQuality.common
+            )
+        ) #cte
+        # .group_by(item_table.c.item_type)
+        .order_by(market_stats.c.gold_price/item_table.c.merchant_exp.asc()).limit(30)
+    ).fetchall()
+    print('-'*50)
+    for item in res:
+        try:
+            print(f'Type:{item[1].value:.<15}| Tier:{item[2]:.<10}| Item:{item[0]:.<25}| '
+                  f'Exp:{item[3]:.<10}| Quality:{item[4].value:.<10}| Gold:{item[5]:.<10}|'
+                  f' Index:{item[5]/item[3]:.{3}} Date:{item[6]}')
+        except Exception:
+            print(f'Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken')
+    print(len(res))
