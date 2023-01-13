@@ -1,17 +1,18 @@
-import datetime
 import json
-import os
-
+import sqlalchemy as sa
 import requests
-from sqlalchemy import MetaData, create_engine, case
+from sqlalchemy import case
+import pandas as pd
+from src.models import (Item, ItemQuality, ItemType, MarketStats, engine, session)
+import traceback
 
-from src.models import Item, Session, ItemType, MarketStats, engine, session, ItemQuality
 
 ITEM_NAMES_URL = "https://smartytitans.com/assets/gameData/texts_en.json"
 ITEM_SHOP_URL = "https://smartytitans.com/assets/gameData/items.json"
 ITEM_LIVE_URL = "https://smartytitans.com/api/item/last/all"
 ITEM_DETAILS_URL =\
     "https://docs.google.com/spreadsheets/d/1WLa7X8h3O0-aGKxeAlCL7bnN8-FhGd3t7pz2RCzSg8c/edit#gid=1558235212"
+
 local_session = session
 
 
@@ -97,7 +98,6 @@ def creating_data():
                  'name': item_values_dict[data[field]["uid"]],
                  'uid': data[field]["uid"],
                  'tier': data[field]["tier"],
-                 # 'item_class': ItemClass.weapon,
                  'item_type': ItemType[data[field]["type"]],
                  'image': 'image',
                  'base_gold_value': data[field]["value"],
@@ -107,10 +107,6 @@ def creating_data():
                  'worker2': data[field]["worker2"],
                  'worker3': data[field]["worker3"],
                  'favor': data[field]["favor"],
-                 # 'airship_power': data[field]["type"],
-                 # 'collection_score': data[field]["type"],
-                 # 'energy_score': data[field]["speedup"],
-
                  'energy_cost': data[field]["speedup"],
                  'base_crafting_time': data[field]["time"],
                  }
@@ -127,7 +123,8 @@ def check_is_none(number):
         return number
 
 
-import traceback
+
+
 
 def create_live_data():
 
@@ -137,7 +134,6 @@ def create_live_data():
         data = json.load(file)
 
         for live_item in data["data"]:
-            # item = Item.query.get(live_item["uid"])
             if live_item["tType"] == "o":
                 try:
                     item = session.query(Item).get(live_item["uid"])
@@ -157,9 +153,6 @@ def create_live_data():
                     create_marketstats_item(item_data)
                 except Exception:
                     print(traceback.format_exc())
-
-import sqlalchemy as sa
-from sqlalchemy.sql import func
 
 
 def get_section_item(name, exp, limit, tier, setup, min_airship_power=0):
@@ -196,9 +189,7 @@ def get_section_item(name, exp, limit, tier, setup, min_airship_power=0):
             item_table.c.merchant_exp > exp,
             item_table.c.tier <= tier,
             item_table.c.airship_power > min_airship_power,
-            # market_stats.c.quality == ItemQuality.common
-            )) #cte
-        # .group_by(item_table.c.item_type)
+            ))
         .order_by(
             case([
                 (min_airship_power == 0, market_stats.c.gold_price/item_table.c.merchant_exp*(-1)),
@@ -272,9 +263,7 @@ def add_item_details_json():
     # request_url =
     # "https://docs.google.com/spreadsheets/d/1WLa7X8h3O0-aGKxeAlCL7bnN8-FhGd3t7pz2RCzSg8c/export?format=xlsx&id=1WLa7X8h3O0-aGKxeAlCL7bnN8-FhGd3t7pz2RCzSg8c"
 
-    import pandas
-
-    excel_data_df = pandas.read_excel('data_spreadsheet.xlsx', sheet_name='Blueprints')
+    excel_data_df = pd.read_excel('data_spreadsheet.xlsx', sheet_name='Blueprints')
 
     json_str = excel_data_df.to_json(orient="records")
 
