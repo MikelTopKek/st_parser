@@ -2,5 +2,5 @@ psycopg2_binary==2.9.5
 selenium==4.7.2
 SQLAlchemy==1.4.45
 undetected_chromedriver==3.1.6
-
+excel2json-3==0.1.6
 requests==2.28.1
