@@ -4,7 +4,7 @@ from sqlalchemy import (Column, Integer, MetaData, String, Table,
 
 from src.selenium_base import parse
 
-from .data_creation import create_live_data, creating_data, get_optimal_items
+from .data_creation import create_live_data, creating_data, get_optimal_items, get_item_details, get_best_airship_item
 from .models import Base, Item, MarketStats
 
 meta = MetaData()
@@ -12,10 +12,11 @@ meta = MetaData()
 
 def main():
     engine = create_engine('postgresql+psycopg2://postgres:postgres@db:5432/postgres')
-    creating_data()
+    # creating_data()
+    # get_item_details()
     create_live_data()
-    get_optimal_items()
-
+    # get_optimal_items()
+    get_best_airship_item(max_tier=100)
     with engine.connect() as conn:
         # conn = conn.execution_options(isolation_level="")
         # Transaction isolation level
