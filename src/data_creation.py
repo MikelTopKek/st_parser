@@ -47,7 +47,7 @@ def create_marketstats_item(item_data):
 
 
 def get_metadata():
-    # get_raw_data()
+    get_raw_data()
     with open("data.json", 'r') as file:
         data = json.load(file)
         items = {}
@@ -72,7 +72,7 @@ def get_metadata():
 def creating_data():
     item_names, item_values, item_descriptions = get_metadata()
 
-    # get_fresh_data()
+    get_fresh_data()
 
     item_values_dict = dict(zip(item_names, item_values))
     with open("fresh_data.json", 'r') as file:

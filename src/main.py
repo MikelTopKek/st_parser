@@ -12,7 +12,7 @@ meta = MetaData()
 
 def main():
     engine = create_engine('postgresql+psycopg2://postgres:postgres@db:5432/postgres')
-    # creating_data()
+    creating_data()
     create_live_data()
     get_optimal_items()
 
