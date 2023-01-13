@@ -14,9 +14,9 @@ def main():
     engine = create_engine('postgresql+psycopg2://postgres:postgres@db:5432/postgres')
     # creating_data()
     # get_item_details()
-    create_live_data()
-    # get_optimal_items()
-    get_best_airship_item(max_tier=100)
+    # create_live_data()
+    get_optimal_items(additional_limit=10)
+    # get_best_airship_item(max_tier=100)
     with engine.connect() as conn:
         # conn = conn.execution_options(isolation_level="")
         # Transaction isolation level

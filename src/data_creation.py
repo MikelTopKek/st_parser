@@ -201,7 +201,7 @@ def get_section_item(name, exp, limit, tier, setup, min_airship_power=0):
         # .group_by(item_table.c.item_type)
         .order_by(
             case([
-                (min_airship_power == 0, item_table.c.merchant_exp/market_stats.c.gold_price),
+                (min_airship_power == 0, market_stats.c.gold_price/item_table.c.merchant_exp*(-1)),
                 (min_airship_power != 0, item_table.c.airship_power)
                   ]).desc()
         ).limit(limit)
@@ -218,8 +218,7 @@ def get_section_item(name, exp, limit, tier, setup, min_airship_power=0):
                   f' Index:{item[5]/item[3]:.{3}} {airpower}')
         except Exception:
             print(f'Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken')
-    print(len(res))
-
+    print(min_airship_power)
     return res
 
 
@@ -273,19 +272,12 @@ def add_item_details_json():
     # request_url =
     # "https://docs.google.com/spreadsheets/d/1WLa7X8h3O0-aGKxeAlCL7bnN8-FhGd3t7pz2RCzSg8c/export?format=xlsx&id=1WLa7X8h3O0-aGKxeAlCL7bnN8-FhGd3t7pz2RCzSg8c"
 
-    # if not os.path.isfile("NAMEFILE111"):
-    #     response = requests.get(request_url)
-    # requests.get(request_url)
-
-    # excel2json.convert_from_file('data_spreadsheet.xlsx')
     import pandas
 
     excel_data_df = pandas.read_excel('data_spreadsheet.xlsx', sheet_name='Blueprints')
 
     json_str = excel_data_df.to_json(orient="records")
 
-    # json_data_1 = json.dumps(json_str, indent=4)
-    # print('Excel Sheet to JSON:\n', json_str)
     f = 'item_details.json'
 
     with open(f, 'w') as file:
@@ -294,7 +286,6 @@ def add_item_details_json():
 
 def get_item_details():
     add_item_details_json()
-
 
     conn = engine
     with open("item_details.json", 'r') as file:
