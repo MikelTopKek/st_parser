@@ -1,16 +1,19 @@
 import sys
 
 from sqlalchemy import (MetaData, create_engine)
+from sqlalchemy.orm import sessionmaker
 
-from .data_creation import (create_live_data, get_optimal_items, get_best_airship_item, get_best_blue_seven_items,
+from .data_creation import (create_live_data,
                             creating_data, get_item_details)
 import os
+
+from .item_requests import get_best_blue_seven_items, get_optimal_items, get_best_airship_item
+from .settings import engine
 
 meta = MetaData()
 
 
 def main():
-    engine = create_engine('postgresql+psycopg2://postgres:postgres@db:5432/postgres')
     request_type = sys.argv[1]
     tier = os.getenv('TIER')
     additional_limit = int(os.getenv('ADDITIONAL_LIMIT'))

@@ -10,11 +10,6 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
 
-engine = create_engine('postgresql+psycopg2://postgres:postgres@db:5432/postgres')
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
 
 class ItemType(enum.Enum):
     ws = "sword"
@@ -50,8 +45,8 @@ class ItemType(enum.Enum):
     z = "element/spirit"
     m = "other"
 
-    xu = "don`t know)"
-    xm = "don`t know))"
+    xu = "etc"
+    xm = "etc2"
 
 
 class ItemQuality(enum.Enum):
@@ -75,12 +70,11 @@ class MarketStats(Base):
     received_at: DateTime = Column(DateTime)
     created_at: DateTime = Column(DateTime, default=datetime.datetime.utcnow())
 
+
 class Item(Base):
     __tablename__ = "item"
 
-    # id: int = Column(Integer, primary_key=True)
     uid: str = Column(String, primary_key=True)
-    # item_class: Enum(ItemClass) = Column(Enum(ItemClass))
     item_type: Enum(ItemType) = Column(Enum(ItemType))
     name: str = Column(String)
     tier: int = Column(Integer)
@@ -97,7 +91,4 @@ class Item(Base):
     energy_score: int = Column(Integer)
     energy_cost: int = Column(Integer)
     base_crafting_time: str = Column(String)
-    # marketstats: List["MarketStats"] = relationship("MarketStats")
 
-
-metadata.create_all(engine)
