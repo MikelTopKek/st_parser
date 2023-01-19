@@ -5,8 +5,8 @@ from sqlalchemy.orm import sessionmaker
 
 from src.models import Item, MarketStats
 
-
-engine = create_engine("postgresql+psycopg2://postgres:postgres@db:5432/postgres")
+engine = create_engine(
+    "postgresql+psycopg2://postgres:postgres@db:5432/postgres")
 Session = sessionmaker(bind=engine)
 session = Session()
 

@@ -1,11 +1,8 @@
 import datetime
 import enum
-from dataclasses import dataclass
-from typing import List
 
-from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, MetaData,
-                        String, Table, create_engine)
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, MetaData, String
+from sqlalchemy.orm import declarative_base
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
@@ -91,4 +88,3 @@ class Item(Base):
     energy_score: int = Column(Integer)
     energy_cost: int = Column(Integer)
     base_crafting_time: str = Column(String)
-

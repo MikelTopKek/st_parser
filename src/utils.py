@@ -10,15 +10,15 @@ def get_data(url, file_name):
     data = request.json()
     json_data = json.dumps(data, indent=4)
     f = file_name
-    with open(f, 'w') as file:
+    with open(f, "w") as file:
         file.write(json_data)
 
 
 def format_number(number):
     if number > 1000000:
-        return f'{round(number / 1000000, 2)}M'
+        return f"{round(number / 1000000, 2)}M"
     elif number > 1000:
-        return f'{round(number / 1000, 2)}k'
+        return f"{round(number / 1000, 2)}k"
     else:
         return number
 
