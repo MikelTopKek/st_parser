@@ -3,11 +3,9 @@ import enum
 from dataclasses import dataclass
 from typing import List
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, Table, MetaData
-
-from sqlalchemy.orm import relationship, sessionmaker
-
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, MetaData,
+                        String, Table, create_engine)
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)

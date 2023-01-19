@@ -1,14 +1,21 @@
-import datetime
 import json
+import os
+from math import ceil
 
+import sqlalchemy as sa
 import requests
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import case
+import pandas as pd
+from src.models import (Item, ItemQuality, ItemType, MarketStats, engine, session)
+import traceback
 
-from src.models import Item, Session, ItemType, MarketStats, engine, session, ItemQuality
 
 ITEM_NAMES_URL = "https://smartytitans.com/assets/gameData/texts_en.json"
 ITEM_SHOP_URL = "https://smartytitans.com/assets/gameData/items.json"
 ITEM_LIVE_URL = "https://smartytitans.com/api/item/last/all"
+ITEM_DETAILS_URL =\
+    "https://docs.google.com/spreadsheets/d/1WLa7X8h3O0-aGKxeAlCL7bnN8-FhGd3t7pz2RCzSg8c/edit#gid=1558235212"
+
 local_session = session
 
 
@@ -40,6 +47,16 @@ def create_item(item_data):
     local_session.commit()
 
 
+def update_item(excel_item):
+    try:
+        updated_item = session.query(Item).filter(Item.name == excel_item["Name"]).first()
+        updated_item.airship_power = excel_item["Airship Power"]
+        session.commit()
+        print(updated_item.name, updated_item.airship_power)
+    except Exception:
+        print(f'Error with item {excel_item["Name"]}')
+
+
 def create_marketstats_item(item_data):
     new_item_market_stats = MarketStats(**item_data)
     local_session.add(new_item_market_stats)
@@ -47,7 +64,7 @@ def create_marketstats_item(item_data):
 
 
 def get_metadata():
-    # get_raw_data()
+    get_raw_data()
     with open("data.json", 'r') as file:
         data = json.load(file)
         items = {}
@@ -72,7 +89,7 @@ def get_metadata():
 def creating_data():
     item_names, item_values, item_descriptions = get_metadata()
 
-    # get_fresh_data()
+    get_fresh_data()
 
     item_values_dict = dict(zip(item_names, item_values))
     with open("fresh_data.json", 'r') as file:
@@ -84,7 +101,6 @@ def creating_data():
                  'name': item_values_dict[data[field]["uid"]],
                  'uid': data[field]["uid"],
                  'tier': data[field]["tier"],
-                 # 'item_class': ItemClass.weapon,
                  'item_type': ItemType[data[field]["type"]],
                  'image': 'image',
                  'base_gold_value': data[field]["value"],
@@ -94,10 +110,6 @@ def creating_data():
                  'worker2': data[field]["worker2"],
                  'worker3': data[field]["worker3"],
                  'favor': data[field]["favor"],
-                 # 'airship_power': data[field]["type"],
-                 # 'collection_score': data[field]["type"],
-                 # 'energy_score': data[field]["speedup"],
-
                  'energy_cost': data[field]["speedup"],
                  'base_crafting_time': data[field]["time"],
                  }
@@ -114,8 +126,6 @@ def check_is_none(number):
         return number
 
 
-import traceback
-
 def create_live_data():
 
     get_live_data()
@@ -124,7 +134,6 @@ def create_live_data():
         data = json.load(file)
 
         for live_item in data["data"]:
-            # item = Item.query.get(live_item["uid"])
             if live_item["tType"] == "o":
                 try:
                     item = session.query(Item).get(live_item["uid"])
@@ -145,14 +154,21 @@ def create_live_data():
                 except Exception:
                     print(traceback.format_exc())
 
-import sqlalchemy as sa
-from sqlalchemy.sql import func
 
-def get_optimal_items():
+def format_number(number):
+    if number > 1000000:
+        return f'{round(number / 1000000, 2)}M'
+    elif number > 1000:
+        return f'{round(number / 1000, 2)}k'
+    else:
+        return number
+
+
+def get_section_item(name, exp, limit, tier, setup, min_airship_power=0):
+
     item_table = Item.__table__
     market_stats = MarketStats.__table__
     conn = engine
-
     recent_date = conn.execute(
         sa.select([market_stats.c.created_at])
         .select_from(
@@ -168,7 +184,159 @@ def get_optimal_items():
                    item_table.c.merchant_exp,
                    market_stats.c.quality,
                    market_stats.c.gold_price,
-                   market_stats.c.created_at])
+                   market_stats.c.created_at,
+                   item_table.c.airship_power,
+                   item_table.c.base_gold_value,
+                   ])
+        .select_from(
+            item_table.join(
+                market_stats, item_table.c.uid == market_stats.c.item_id
+            ))
+        .filter(sa.and_(
+            market_stats.c.created_at == recent_date[0][0],
+            market_stats.c.gold_price > 0,
+            item_table.c.item_type.in_(setup),
+            item_table.c.tier <= tier,
+            item_table.c.airship_power > min_airship_power,
+            case([
+                (min_airship_power != 0, item_table.c.item_type != ItemType.xf),
+                (min_airship_power == 0, item_table.c.merchant_exp > exp)
+                  ]),
+            ))
+        .order_by(
+            case([
+                (min_airship_power == 0, market_stats.c.gold_price/item_table.c.merchant_exp*(-1)),
+                (min_airship_power != 0, case((market_stats.c.quality == ItemQuality.uncommon, item_table.c.airship_power * 1.25),
+                                              (market_stats.c.quality == ItemQuality.flawless, item_table.c.airship_power * 1.5),
+                                                (market_stats.c.quality == ItemQuality.epic, item_table.c.airship_power * 2),
+                                                (market_stats.c.quality == ItemQuality.legendary, item_table.c.airship_power * 3),
+                                                (market_stats.c.quality == ItemQuality.common, item_table.c.airship_power),
+                                              )
+                 )
+                  ]).desc()
+        ).limit(limit)
+    ).fetchall()
+    with open(os.getenv('OUTPUT_FILENAME'), 'a') as file:
+        file.write(f'{name}\n')
+        if min_airship_power > 0:
+            file.write(f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
+                  f' Gold{"":.<6}| Index{"":.<2}| Airpower|\n')
+        else:
+            file.write(f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
+                  f' Gold{"":.<6}| Index{"":.<1}| 1M EXP cost{"":.<0}|\n')
+        avg = []
+        for item in res:
+            if item[4] == ItemQuality.common:
+                scale = 1
+            elif item[4] == ItemQuality.uncommon:
+                scale = 1.25
+            elif item[4] == ItemQuality.flawless:
+                scale = 1.5
+            elif item[4] == ItemQuality.epic:
+                scale = 2
+            else:
+                scale = 3
+            try:
+                airpower = ""
+                million_exp_cost = f"{round((item[5]-item[8])/item[3], 1):.{4}}M"
+                million_exp_cost = f'{million_exp_cost}{"":.<4}|'
+                gold_value = format_number(item[5])
+                experience = format_number(item[3])
+                if min_airship_power > 0:
+                    airpower = f'{item[7]*scale:.<8}|'
+                    million_exp_cost = ""
+                file.write(f'{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| '
+                      f'{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| '
+                      f'{round(item[5]/item[3], 2):.<7}| {million_exp_cost}{airpower}\n')
+                avg.append((item[5]-item[8])/item[3])
+            except Exception:
+                print(f'Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken')
+        if len(avg) > 0 and min_airship_power == 0:
+            file.write(f'Avg cost exp(millions): {sum(avg)/len(avg):.{4}}M\n')
+
+    return res
+
+
+def get_optimal_items(min_airship_power=0,  additional_limit=0, tier=0, min_exp=0):
+
+    # Elements
+    get_section_item("Elements", min_exp, 10+additional_limit, tier,
+                     [ItemType.z], min_airship_power
+                     )
+    # Breastplates
+    get_section_item("Breastplates", min_exp*1.2, 3+additional_limit, tier,
+                     [ItemType.ah, ItemType.am, ItemType.al], min_airship_power
+                     )
+    # Helmets
+    get_section_item("Helmets", min_exp*1.5, 3+additional_limit, tier,
+                     [ItemType.hh, ItemType.hm, ItemType.hl, ItemType.xc], min_airship_power
+                     )
+    # Weapons (on rack)
+    get_section_item("Weapons on rack", min_exp*1.5, 3+additional_limit, tier,
+                     [ItemType.ws, ItemType.wa, ItemType.wm, ItemType.wp, ItemType.wt], min_airship_power
+                     )
+    # Weapons (on table)
+    get_section_item("Weapons on table", min_exp*1.5, 3+additional_limit, tier,
+                     [ItemType.wd, ItemType.ww, ItemType.wc, ItemType.wg, ItemType.wb, ItemType.xs],
+                     min_airship_power
+                     )
+    # Misc. armor
+    get_section_item("Misc armor", min_exp, 5+additional_limit, tier,
+                     [ItemType.gh, ItemType.gl, ItemType.bh, ItemType.bl], min_airship_power
+                     )
+    # Accessories
+    get_section_item("Accessories", min_exp*1.4, 5+additional_limit, tier,
+                     [ItemType.uh, ItemType.up, ItemType.us,
+                      ItemType.xr, ItemType.xa, ItemType.xf,
+                      ItemType.fm, ItemType.fd],
+                     min_airship_power
+                     )
+
+
+def get_best_airship_item(additional_limit, min_airship_power, tier):
+    get_optimal_items(additional_limit=additional_limit,
+                      min_airship_power=min_airship_power,
+                      tier=tier)
+
+
+def add_item_details_json():
+    excel_data_df = pd.read_excel('data_spreadsheet.xlsx', sheet_name='Blueprints')
+    json_str = excel_data_df.to_json(orient="records")
+    f = 'item_details.json'
+    with open(f, 'w') as file:
+        file.write(json_str)
+
+
+def get_item_details():
+    add_item_details_json()
+    with open("item_details.json", 'r') as file:
+        excel_json_data = json.load(file)
+
+        for excel_item in excel_json_data:
+            update_item(excel_item)
+
+
+def get_best_blue_seven_items(limit):
+
+    item_table = Item.__table__
+    market_stats = MarketStats.__table__
+    conn = engine
+    recent_date = conn.execute(
+        sa.select([market_stats.c.created_at])
+        .select_from(
+            market_stats
+        )
+        .order_by(market_stats.c.created_at.desc()).limit(1)
+    ).fetchall()
+
+    res = conn.execute(
+        sa.select([item_table.c.name,
+                   item_table.c.item_type,
+                   item_table.c.tier,
+                   market_stats.c.quality,
+                   market_stats.c.gold_price,
+                   market_stats.c.created_at,
+                   ])
         .select_from(
             item_table.join(
                 market_stats, item_table.c.uid == market_stats.c.item_id
@@ -177,21 +345,22 @@ def get_optimal_items():
         .filter(sa.and_(
             market_stats.c.created_at == recent_date[0][0],
             market_stats.c.gold_price > 0,
-            item_table.c.item_type != ItemType.z,
-            item_table.c.merchant_exp > 50000,
-            item_table.c.tier < 11
-            # market_stats.c.quality == ItemQuality.common
-            )
-        ) #cte
-        # .group_by(item_table.c.item_type)
-        .order_by(market_stats.c.gold_price/item_table.c.merchant_exp.asc()).limit(30)
+            item_table.c.tier >= 7,
+            market_stats.c.quality != ItemQuality.common,
+            market_stats.c.quality != ItemQuality.uncommon,
+        ))
+        .order_by(market_stats.c.gold_price)
+        .limit(limit+10)
     ).fetchall()
-    print('-'*50)
-    for item in res:
-        try:
-            print(f'Type:{item[1].value:.<15}| Tier:{item[2]:.<10}| Item:{item[0]:.<25}| '
-                  f'Exp:{item[3]:.<10}| Quality:{item[4].value:.<10}| Gold:{item[5]:.<10}|'
-                  f' Index:{item[5]/item[3]:.{3}} Date:{item[6]}')
-        except Exception:
-            print(f'Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken')
-    print(len(res))
+
+    with open(os.getenv('OUTPUT_FILENAME'), 'a') as file:
+        file.write(f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Quality{"":.<3}| Gold{"":.<6}|\n')
+        for item in res:
+            try:
+                gold_value = format_number(item[4])
+                file.write(f'{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| '
+                      f'{item[3].value:.<10}| {gold_value:.<10}|\n')
+            except Exception:
+                file.write(f'Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken')
+
+    return res
