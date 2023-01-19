@@ -7,11 +7,10 @@ repos:
     -   id: check-merge-conflict
     -   id: debug-statements
     -   id: check-yaml
-    -   id: end-of-file-fixer
     -   id: trailing-whitespace
--   repo: https://github.com/psf/black
-    rev: 22.3.0
+
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4.4
     hooks:
-    -   id: black
-        language_version: python3.9
-        name: black (python)
+    - id: autopep8
+    exclude: '.json'
