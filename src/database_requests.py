@@ -131,7 +131,7 @@ def merchant_exp_request(limit, setup, tier):
                 item_table.c.name,
                 item_table.c.item_type,
                 item_table.c.tier,
-                item_table.c.merchant_exp,
+                item_table.c.worker_exp,
                 item_table.c.worker1,
                 item_table.c.worker2,
                 item_table.c.worker3,
