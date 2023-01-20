@@ -1,7 +1,7 @@
 import os
 
 from src.data_creation import get_section_item
-from src.database_requests import best_blue_seven_plus_items_list
+from src.database_requests import best_blue_seven_plus_items_list, merchant_exp_request
 from src.models import ItemType
 from src.utils import format_number
 
@@ -112,3 +112,30 @@ def get_best_airship_item(additional_limit, min_airship_power, tier):
         min_airship_power=min_airship_power,
         tier=tier,
     )
+
+
+def get_merchant_exp(limit, setup, tier):
+    res = merchant_exp_request(limit, setup, tier)
+    with open(os.getenv("OUTPUT_FILENAME"), "a") as file:
+        file.write(
+            f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| '
+            f'Worker1{"":.<3}| Worker2{"":.<3}| Worker3{"":.<3}|\n'
+        )
+        for item in res:
+            try:
+                file.write(
+                    f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
+                    f"{format_number(item[3]):.<10}| {item[4]:.<10}| {str(item[5]):.<10}| {str(item[6]):.<10}|\n"
+                )
+            except Exception:
+                file.write(
+                    f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
+                )
+
+    return res
+
+
+def get_clothes_exp(limit, tier):
+    setup = [ItemType.al, ItemType.am, ItemType.hm,
+             ItemType.hl, ItemType.gl, ItemType.bl]
+    get_merchant_exp(limit, setup, tier)
