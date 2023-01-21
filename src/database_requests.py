@@ -120,3 +120,34 @@ def items_list(name, exp, limit, tier, setup, min_airship_power):
         )
         .limit(limit)
     ).fetchall()
+
+
+def merchant_exp_request(limit, setup, tier):
+
+    conn = engine
+    return conn.execute(
+        sa.select(
+            [
+                item_table.c.name,
+                item_table.c.item_type,
+                item_table.c.tier,
+                item_table.c.worker_exp,
+                item_table.c.worker1,
+                item_table.c.worker2,
+                item_table.c.worker3,
+                item_table.c.base_crafting_time
+            ]
+        )
+        .select_from(
+            item_table
+        )
+        .filter(
+            sa.and_(
+                item_table.c.item_type.in_(setup),
+                item_table.c.tier <= tier
+
+            )
+        )
+        .order_by(item_table.c.merchant_exp.desc())
+        .limit(limit + 20)
+    ).fetchall()
