@@ -19,6 +19,10 @@ start_best_blue_seven_item:
 	docker-compose run --rm web python run.py blue_seven_item
 	cat results.txt
 
+start_clothes_items:
+	docker-compose run --rm web python run.py clothes_items
+	cat results.txt
+
 start_db:
 	docker-compose -f docker-compose.yml up db;
 

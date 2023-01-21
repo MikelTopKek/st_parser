@@ -1,0 +1,16 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+    -   id: check-ast
+    -   id: check-case-conflict
+    -   id: check-merge-conflict
+    -   id: debug-statements
+    -   id: check-yaml
+    -   id: trailing-whitespace
+
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4.4
+    hooks:
+    - id: autopep8
+    exclude: '.json'
