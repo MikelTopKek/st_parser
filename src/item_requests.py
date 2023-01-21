@@ -1,9 +1,11 @@
+import datetime
 import os
 
 from src.data_creation import get_section_item
 from src.database_requests import best_blue_seven_plus_items_list, merchant_exp_request
 from src.models import ItemType
-from src.utils import format_number
+from src.settings import guild_bonus_craft_speed
+from src.utils import format_number, all_workers_bonus_speed
 
 
 def get_best_blue_seven_items(limit):
@@ -119,13 +121,19 @@ def get_merchant_exp(limit, setup, tier):
     with open(os.getenv("OUTPUT_FILENAME"), "a") as file:
         file.write(
             f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| '
-            f'Worker1{"":.<3}| Worker2{"":.<3}| Worker3{"":.<3}|\n'
+            f'Worker1{"":.<3}| Worker2{"":.<3}| Worker3{"":.<3}| Crafting_time|\n'
         )
         for item in res:
+            if item[7]:
+                item_time = str(datetime.timedelta(
+                    seconds=round(
+                        int(item[7])*all_workers_bonus_speed(item[4], item[5], item[6]) * guild_bonus_craft_speed, 0)
+                ))
             try:
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                    f"{format_number(item[3]):.<10}| {item[4]:.<10}| {str(item[5]):.<10}| {str(item[6]):.<10}|\n"
+                    f"{format_number(item[3]):.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
+                    f" {str(item[6]):.<10}| {item_time:.<13}|\n"
                 )
             except Exception:
                 file.write(

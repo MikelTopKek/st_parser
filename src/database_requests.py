@@ -135,6 +135,7 @@ def merchant_exp_request(limit, setup, tier):
                 item_table.c.worker1,
                 item_table.c.worker2,
                 item_table.c.worker3,
+                item_table.c.base_crafting_time
             ]
         )
         .select_from(
