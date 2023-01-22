@@ -122,7 +122,7 @@ def items_list(name, exp, limit, tier, setup, min_airship_power):
     ).fetchall()
 
 
-def merchant_exp_request(limit, setup, tier):
+def worker_exp_request(limit, setup, tier):
 
     conn = engine
     return conn.execute(
@@ -148,6 +148,23 @@ def merchant_exp_request(limit, setup, tier):
 
             )
         )
-        .order_by(item_table.c.merchant_exp.desc())
-        .limit(limit + 20)
+        .order_by(
+            case(
+                [
+                    (
+                        item_table.c.worker2 != 'Empty' and item_table.c.worker3 != 'Empty',
+                        item_table.c.worker_exp / 3
+                    ),
+                    (
+                        item_table.c.worker2 != 'Empty' and item_table.c.worker3 == 'Empty',
+                        item_table.c.worker_exp / 2
+                    ),
+                    (
+                        item_table.c.worker2 == 'Empty' and item_table.c.worker3 == 'Empty',
+                        item_table.c.worker_exp,
+                    ),
+                ]
+            ).desc()
+        )
+        .limit(limit + 50)
     ).fetchall()

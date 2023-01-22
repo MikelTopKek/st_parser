@@ -45,10 +45,14 @@ def update_item(excel_item):
             session.query(Item).filter(Item.name == excel_item["Name"]).first()
         )
         updated_item.airship_power = excel_item["Airship Power"]
+        if updated_item.worker2 is None:
+            updated_item.worker2 = "Empty"
+        if updated_item.worker3 is None:
+            updated_item.worker3 = "Empty"
         session.commit()
         print(updated_item.name, updated_item.airship_power)
-    except Exception:
-        print(f'Error with item {excel_item["Name"]}')
+    except Exception as e:
+        print(f'Error with item {excel_item["Name"]} Exc:{str(e)}')
 
 
 def create_marketstats_item(item_data):
@@ -109,8 +113,8 @@ def creating_data():
             }
             try:
                 create_item(item_data)
-            except Exception:
-                print(Exception)
+            except Exception as e:
+                print(str(e))
 
 
 def create_live_data():

@@ -26,7 +26,7 @@ worker_lvl_crafting_bonus_list = [0, 0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18
                                   31, 33, 34, 36, 37, 39, 40, 42, 43, 45, 46, 48, 49, 51, 52, 54, 55, 67, 60]
 
 workers_lvl = {'sun_dragon': os.getenv('SUN_DRAGON_LVL'),
-               'priestess': os.getenv('PRIESTESS_LVL'),
+               'priest': os.getenv('PRIESTESS_LVL'),
                'master': os.getenv('MASTER_LVL'),
                'wizard': os.getenv('WIZARD_LVL'),
                'herbalist': os.getenv('HERBALIST_LVL'),
