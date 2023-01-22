@@ -50,7 +50,10 @@ def worker_bonus_speed(worker):
     if worker == 'Empty':
         return 0
     else:
-        level = int(workers_lvl[worker])
+        try:
+            level = int(workers_lvl[worker])
+        except KeyError:
+            level = 0
         return worker_lvl_crafting_bonus_list[level]*0.01
 
 
