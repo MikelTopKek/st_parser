@@ -1,5 +1,6 @@
 import datetime
 import os
+from math import ceil
 
 from src.data_creation import get_section_item
 from src.database_requests import best_blue_seven_plus_items_list, worker_exp_request
@@ -121,24 +122,29 @@ def get_worker_exp(limit, setup, tier):
     with open(os.getenv("OUTPUT_FILENAME"), "a") as file:
         file.write(
             f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| '
-            f'Worker1{"":.<3}| Worker2{"":.<3}| Worker3{"":.<3}| Crafting_time|\n'
+            f'Worker1{"":.<3}| Worker2{"":.<3}| Worker3{"":.<3}| Crafting_time| Index(exp/h)|\n'
         )
         for item in res:
             number_of_workers = 1
-            if item[5]:
+            if item[5] != 'Empty':
                 number_of_workers += 1
-            if item[6]:
+            if item[6] != 'Empty':
                 number_of_workers += 1
             if item[7]:
-                item_time = str(datetime.timedelta(
-                    seconds=round(
-                        int(item[7])*all_workers_bonus_speed(item[4], item[5], item[6]) * guild_bonus_craft_speed, 0)
-                ))
+                time_in_seconds = round(item[7] *
+                                        all_workers_bonus_speed(item[4], item[5], item[6]) * guild_bonus_craft_speed, 0)
+                item_time = datetime.timedelta(
+                    seconds=time_in_seconds
+                )
             try:
+                experience = format_number(
+                    round(item[3] / number_of_workers, 1))
+                # if round(experience/time_in_seconds*3600, 2) < 600 or item[2] < 4:
+                #     continue
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                    f"{format_number(round(item[3]/number_of_workers, 0)):.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
-                    f" {str(item[6]):.<10}| {item_time:.<13}|\n"
+                    f"{experience:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
+                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience/time_in_seconds*3600, 2):.<12}|\n"
                 )
             except Exception as e:
                 file.write(

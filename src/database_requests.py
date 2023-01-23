@@ -166,5 +166,5 @@ def worker_exp_request(limit, setup, tier):
                 ]
             ).desc()
         )
-        .limit(limit + 50)
+        .limit(limit + 30)
     ).fetchall()
