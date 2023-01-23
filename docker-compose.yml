@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:14
     env_file:
-      - env/.env
+      - .env
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
@@ -15,7 +15,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     env_file:
-      - env/.env
+      - .env
     command: >
       bash -c "python run.py"
     volumes:
