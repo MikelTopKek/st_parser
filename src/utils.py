@@ -17,9 +17,9 @@ def get_data(url, file_name):
 
 def format_number(number):
     if number > 1000000:
-        return f"{round(number / 1000000, 2)}M"
+        return f"{round(number / 1000000, 1)}M"
     elif number > 1000:
-        return f"{round(number / 1000, 2)}k"
+        return f"{round(number / 1000, 1)}k"
     else:
         return number
 
@@ -47,10 +47,13 @@ def quality_price_increase(item):
 
 
 def worker_bonus_speed(worker):
-    if worker is None:
+    if worker == 'Empty':
         return 0
     else:
-        level = int(workers_lvl[worker])
+        try:
+            level = int(workers_lvl[worker])
+        except KeyError:
+            level = 0
         return worker_lvl_crafting_bonus_list[level]*0.01
 
 

@@ -1,7 +1,7 @@
 import datetime
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, MetaData, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, MetaData, String, Float
 from sqlalchemy.orm import declarative_base
 
 metadata = MetaData()
@@ -87,4 +87,5 @@ class Item(Base):
     collection_score: int = Column(Integer)
     energy_score: int = Column(Integer)
     energy_cost: int = Column(Integer)
-    base_crafting_time: str = Column(String)
+    base_crafting_time: int = Column(Integer)
+    bonus_crafting_time: float = Column(Float)
