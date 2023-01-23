@@ -3,6 +3,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.constants import DATA_SPREADSHEED_FILENAME
 from src.models import Item, MarketStats
 
 engine = create_engine(
@@ -20,7 +21,7 @@ fresh_data_file = os.getenv("FRESH_DATA_FILENAME")
 live_data_file = os.getenv("LIVE_DATA_FILENAME")
 output_file = os.getenv("OUTPUT_FILENAME")
 item_details_file = os.getenv("ITEM_DETAILS_NAME")
-data_spreadsheet_file = os.getenv("DATA_SPREADSHEED_FILENAME")
+data_spreadsheet_file = DATA_SPREADSHEED_FILENAME
 
 worker_lvl_crafting_bonus_list = [0, 0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22, 24, 25, 27, 28, 30,
                                   31, 33, 34, 36, 37, 39, 40, 42, 43, 45, 46, 48, 49, 51, 52, 54, 55, 67, 60]
