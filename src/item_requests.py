@@ -32,8 +32,8 @@ def get_best_blue_seven_items(limit):
     return res
 
 
-def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0):
-
+def get_optimal_items(max_cost_of_1m_exp=1e3, min_airship_power=0, additional_limit=0, tier=0, min_exp=0):
+    print('Filtering optimal items due to env params...')
     # Elements
     get_section_item(
         "Elements",
@@ -41,6 +41,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
         10 + additional_limit,
         tier,
         [ItemType.z],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
     # Breastplates
@@ -50,6 +51,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
         3 + additional_limit,
         tier,
         [ItemType.ah, ItemType.am, ItemType.al],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
     # Helmets
@@ -59,6 +61,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
         3 + additional_limit,
         tier,
         [ItemType.hh, ItemType.hm, ItemType.hl, ItemType.xc],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
     # Weapons (on rack)
@@ -68,6 +71,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
         3 + additional_limit,
         tier,
         [ItemType.ws, ItemType.wa, ItemType.wm, ItemType.wp, ItemType.wt],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
     # Weapons (on table)
@@ -78,6 +82,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
         tier,
         [ItemType.wd, ItemType.ww, ItemType.wc,
             ItemType.wg, ItemType.wb, ItemType.xs],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
     # Misc. armor
@@ -87,6 +92,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
         5 + additional_limit,
         tier,
         [ItemType.gh, ItemType.gl, ItemType.bh, ItemType.bl],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
     # Accessories
@@ -105,6 +111,7 @@ def get_optimal_items(min_airship_power=0, additional_limit=0, tier=0, min_exp=0
             ItemType.fm,
             ItemType.fd,
         ],
+        max_cost_of_1m_exp,
         min_airship_power,
     )
 

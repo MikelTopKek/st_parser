@@ -46,7 +46,7 @@ def best_blue_seven_plus_items_list(limit):
     ).fetchall()
 
 
-def items_list(name, exp, limit, tier, setup, min_airship_power):
+def items_list(exp, limit, tier, setup, min_airship_power, max_cost_of_1m_exp):
     conn = engine
     return conn.execute(
         sa.select(
@@ -72,6 +72,8 @@ def items_list(name, exp, limit, tier, setup, min_airship_power):
                 market_stats.c.gold_price > 0,
                 item_table.c.item_type.in_(setup),
                 item_table.c.tier <= tier,
+                (market_stats.c.gold_price - item_table.c.base_gold_value) /
+                item_table.c.merchant_exp < max_cost_of_1m_exp,
                 item_table.c.airship_power > min_airship_power,
                 case(
                     [
@@ -87,8 +89,8 @@ def items_list(name, exp, limit, tier, setup, min_airship_power):
                 [
                     (
                         min_airship_power == 0,
-                        market_stats.c.gold_price /
-                        item_table.c.merchant_exp * (-1),
+                        (market_stats.c.gold_price - item_table.c.base_gold_value) /
+                        item_table.c.merchant_exp,
                     ),
                     (
                         min_airship_power != 0,

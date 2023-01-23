@@ -20,6 +20,7 @@ def main():
     additional_limit = int(os.getenv("ADDITIONAL_LIMIT"))
     min_airship_power = int(os.getenv("MIN_AIRSHIP_POWER"))
     min_exp = int(os.getenv("MIN_EXP"))
+    max_cost_of_1m_exp = int(os.getenv('MAX_COST_OF_1M_EXP'))
     open(os.getenv("OUTPUT_FILENAME"), "w").close()
 
     with engine.connect() as conn:
@@ -31,10 +32,11 @@ def main():
         creating_data()
         get_item_details()
     elif request_type == "optimal_items":
-        print("Getting optimal items...")
+        print('Getting optimal items...')
         create_live_data()
         get_optimal_items(additional_limit=additional_limit,
-                          tier=tier, min_exp=min_exp)
+                          tier=tier, min_exp=min_exp,
+                          max_cost_of_1m_exp=max_cost_of_1m_exp)
     elif request_type == "best_airship_item":
         print("Getting best items with highest airship power...")
         create_live_data()

@@ -29,6 +29,7 @@ def get_fresh_data():
 
 
 def get_live_data():
+    print("Getting live data...")
     get_data(ITEM_LIVE_URL, live_data_file)
 
 
@@ -146,9 +147,9 @@ def create_live_data():
                     print(traceback.format_exc())
 
 
-def get_section_item(name, exp, limit, tier, setup, min_airship_power=0):
-
-    res = items_list(name, exp, limit, tier, setup, min_airship_power)
+def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_airship_power=0):
+    res = items_list(exp, limit, tier, setup,
+                     min_airship_power, max_cost_of_1m_exp)
     with open(output_file, "a") as file:
         file.write(f"{name}\n")
         if min_airship_power > 0:
