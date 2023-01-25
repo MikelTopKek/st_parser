@@ -151,7 +151,7 @@ def get_worker_exp(limit, setup, tier):
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
                     f"{experience_print:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
-                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience/time_in_seconds*3600, 2):.<12} {number_of_workers}|\n"
+                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience/time_in_seconds*3600, 2):.<12}|\n"
                 )
             except Exception as e:
                 file.write(

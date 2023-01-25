@@ -3,6 +3,7 @@ from sqlalchemy import case
 
 from src.models import ItemQuality, ItemType
 from src.settings import engine, item_table, market_stats
+from src.utils import all_workers_bonus_speed
 
 
 def recent_date():
@@ -151,22 +152,9 @@ def worker_exp_request(limit, setup, tier):
             )
         )
         .order_by(
-            case(
-                [
-                    (
-                        item_table.c.worker2 != 'Empty' and item_table.c.worker3 != 'Empty',
-                        item_table.c.worker_exp / 3
-                    ),
-                    (
-                        item_table.c.worker2 != 'Empty' and item_table.c.worker3 == 'Empty',
-                        item_table.c.worker_exp / 2
-                    ),
-                    (
-                        item_table.c.worker2 == 'Empty' and item_table.c.worker3 == 'Empty',
-                        item_table.c.worker_exp,
-                    ),
-                ]
-            ).desc()
+            item_table.c.base_crafting_time/all_workers_bonus_speed(item_table.c.worker1,
+                                                                    item_table.c.worker2,
+                                                                    item_table.c.worker3)
         )
-        .limit(limit + 30)
+        .limit(limit + 10)
     ).fetchall()
