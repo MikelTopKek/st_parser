@@ -144,14 +144,14 @@ def get_worker_exp(limit, setup, tier):
                     seconds=time_in_seconds
                 )
             try:
-                experience = format_number(
-                    round(item[3] / number_of_workers, 1))
+                experience = round(item[3] / number_of_workers, 1)
+                experience_print = format_number(experience)
                 # if round(experience/time_in_seconds*3600, 2) < 600 or item[2] < 4:
                 #     continue
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                    f"{experience:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
-                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience/time_in_seconds*3600, 2):.<12}|\n"
+                    f"{experience_print:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
+                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience/time_in_seconds*3600, 2):.<12} {number_of_workers}|\n"
                 )
             except Exception as e:
                 file.write(
@@ -165,3 +165,8 @@ def get_clothes_exp(limit, tier):
     setup = [ItemType.al, ItemType.am, ItemType.hm,
              ItemType.hl, ItemType.gl, ItemType.bl]
     get_worker_exp(limit + 10, setup, tier)
+
+
+def get_meal_exp(limit, tier):
+    setup = [ItemType.fm]
+    get_worker_exp(limit, setup, tier)

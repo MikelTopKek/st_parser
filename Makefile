@@ -21,6 +21,10 @@ start_clothes_items:
 	docker-compose run --rm web python run.py clothes_items
 	cat results.txt
 
+start_meals_items:
+	docker-compose run --rm web python run.py meals_items
+	cat results.txt
+
 start_db:
 	docker-compose -f docker-compose.yml up db;
 

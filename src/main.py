@@ -7,7 +7,7 @@ from .data_creation import create_live_data, creating_data, get_item_details
 from .item_requests import (
     get_best_airship_item,
     get_best_blue_seven_items,
-    get_optimal_items, get_clothes_exp,
+    get_optimal_items, get_clothes_exp, get_meal_exp,
 )
 from .settings import engine
 
@@ -50,6 +50,9 @@ def main():
         create_live_data()
         get_best_blue_seven_items(20)
     elif request_type == "clothes_items":
-        print('Getting clothes merchant experience')
+        print('Getting clothes worker experience')
         get_clothes_exp(limit=additional_limit, tier=tier)
+    elif request_type == "meals_items":
+        print('Getting meals worker experience')
+        get_meal_exp(limit=additional_limit, tier=tier)
     engine.dispose()
