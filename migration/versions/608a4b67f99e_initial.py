@@ -51,7 +51,7 @@ def upgrade() -> None:
                               autoincrement=False, nullable=True),
                     sa.Column('energy_cost', sa.INTEGER(),
                               autoincrement=False, nullable=True),
-                    sa.Column('base_crafting_time', sa.VARCHAR(),
+                    sa.Column('base_crafting_time', sa.INTEGER(),
                               autoincrement=False, nullable=True),
                     sa.PrimaryKeyConstraint('uid', name='item_pkey'),
                     postgresql_ignore_search_path=False
