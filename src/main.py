@@ -25,6 +25,7 @@ def main():
 
     with engine.connect() as conn:
         with conn.begin():
+
             meta.create_all(engine)
 
     if request_type == "filling_data":

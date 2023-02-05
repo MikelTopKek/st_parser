@@ -152,9 +152,9 @@ def worker_exp_request(limit, setup, tier):
             )
         )
         .order_by(
-            item_table.c.base_crafting_time/all_workers_bonus_speed(item_table.c.worker1,
-                                                                    item_table.c.worker2,
-                                                                    item_table.c.worker3)
+            (item_table.c.base_crafting_time/all_workers_bonus_speed(item_table.c.worker1,
+                                                                     item_table.c.worker2,
+                                                                     item_table.c.worker3)).desc()
         )
         .limit(limit + 10)
     ).fetchall()

@@ -137,12 +137,11 @@ def get_worker_exp(limit, setup, tier):
                 number_of_workers += 1
             if item[6] != 'Empty':
                 number_of_workers += 1
-            if item[7]:
-                time_in_seconds = round(item[7] *
-                                        all_workers_bonus_speed(item[4], item[5], item[6]) * guild_bonus_craft_speed, 0)
-                item_time = datetime.timedelta(
-                    seconds=time_in_seconds
-                )
+            time_in_seconds = round(item[7] *
+                                    all_workers_bonus_speed(item[4], item[5], item[6]) * guild_bonus_craft_speed, 0)
+            item_time = datetime.timedelta(
+                seconds=time_in_seconds
+            )
             try:
                 experience = round(item[3] / number_of_workers, 1)
                 experience_print = format_number(experience)

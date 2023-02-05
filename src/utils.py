@@ -54,7 +54,7 @@ def worker_bonus_speed(worker):
             level = int(workers_lvl[worker])
         except KeyError:
             level = 0
-        return worker_lvl_crafting_bonus_list[level]*0.01
+        return worker_lvl_crafting_bonus_list[level] * 0.01
 
 
 def all_workers_bonus_speed(worker1, worker2, worker3):
