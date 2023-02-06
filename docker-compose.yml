@@ -5,8 +5,6 @@ services:
     image: postgres:14
     env_file:
       - .env
-    volumes:
-      - ./data/db:/var/lib/postgresql/data
     ports:
     - 5432:5432
 
@@ -20,7 +18,5 @@ services:
       bash -c "python run.py"
     volumes:
       - .:/app
-    ports:
-      - "8000:8000"
     depends_on:
       - db

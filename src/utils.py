@@ -15,13 +15,13 @@ def get_data(url, file_name):
         file.write(json_data)
 
 
-def format_number(number):
-    if number > 1000000:
+def format_number(number: int) -> str:
+    if number >= 1000000:
         return f"{round(number / 1000000, 1)}M"
-    elif number > 1000:
+    elif number >= 1000:
         return f"{round(number / 1000, 1)}k"
     else:
-        return number
+        return str(number)
 
 
 def check_is_none(number):
@@ -54,7 +54,7 @@ def worker_bonus_speed(worker):
             level = int(workers_lvl[worker])
         except KeyError:
             level = 0
-        return worker_lvl_crafting_bonus_list[level]*0.01
+        return worker_lvl_crafting_bonus_list[level] * 0.01
 
 
 def all_workers_bonus_speed(worker1, worker2, worker3):

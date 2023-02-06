@@ -1,5 +1,4 @@
 import json
-import traceback
 
 import pandas as pd
 
@@ -129,6 +128,7 @@ def create_live_data():
             if live_item["tType"] == "o":
                 try:
                     item = session.query(Item).get(live_item["uid"])
+
                     if live_item["tag1"] is None:
                         quality = ItemQuality.common.value
                     else:
@@ -143,8 +143,10 @@ def create_live_data():
                         "received_at": live_item["createdAt"],
                     }
                     create_marketstats_item(item_data)
-                except Exception:
-                    print(traceback.format_exc())
+                except AttributeError:
+                    print(
+                        f'uid:{live_item["uid"]} tier:{live_item["tier"]} doesn`t exist')
+                    continue
 
 
 def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_airship_power=0):
