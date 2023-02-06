@@ -38,7 +38,7 @@ workers_lvl = {'sun_dragon': os.getenv('SUN_DRAGON_LVL'),
                'tailor': os.getenv('TAILOR_LVL'),
                }
 
-guild_bonus_craft_speed = 1 - int(os.getenv('GUILD_BONUS_CRAFT_SPEED'))*0.01
+guild_bonus_craft_speed = 1 - int(os.getenv('GUILD_BONUS_CRAFT_SPEED')) * 0.01
 
 
 item_table = Item.__table__

@@ -1,6 +1,5 @@
 import datetime
 import os
-from math import ceil
 
 from src.data_creation import get_section_item
 from src.database_requests import best_blue_seven_plus_items_list, worker_exp_request
@@ -9,8 +8,7 @@ from src.settings import guild_bonus_craft_speed
 from src.utils import format_number, all_workers_bonus_speed
 
 
-def get_best_blue_seven_items(limit):
-
+def get_best_blue_seven_items(limit: int) -> list:
     res = best_blue_seven_plus_items_list(limit)
 
     with open(os.getenv("OUTPUT_FILENAME"), "a") as file:
@@ -32,18 +30,14 @@ def get_best_blue_seven_items(limit):
     return res
 
 
-def get_optimal_items(max_cost_of_1m_exp=1e3, min_airship_power=0, additional_limit=0, tier=0, min_exp=0):
+def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0, additional_limit=0,
+                      tier: int = 0, min_exp: int = 0):
     print('Filtering optimal items due to env params...')
     # Elements
-    get_section_item(
-        "Elements",
-        min_exp,
-        10 + additional_limit,
-        tier,
-        [ItemType.z],
-        max_cost_of_1m_exp,
-        min_airship_power,
-    )
+    get_section_item("Elements", min_exp, 10 + additional_limit,
+                     tier, [ItemType.z], max_cost_of_1m_exp,
+                     min_airship_power,
+                     )
     # Breastplates
     get_section_item(
         "Breastplates",
@@ -81,7 +75,7 @@ def get_optimal_items(max_cost_of_1m_exp=1e3, min_airship_power=0, additional_li
         3 + additional_limit,
         tier,
         [ItemType.wd, ItemType.ww, ItemType.wc,
-            ItemType.wg, ItemType.wb, ItemType.xs],
+         ItemType.wg, ItemType.wb, ItemType.xs],
         max_cost_of_1m_exp,
         min_airship_power,
     )
@@ -116,7 +110,7 @@ def get_optimal_items(max_cost_of_1m_exp=1e3, min_airship_power=0, additional_li
     )
 
 
-def get_best_airship_item(additional_limit, min_airship_power, tier):
+def get_best_airship_item(additional_limit: int, min_airship_power: int, tier: int) -> None:
     get_optimal_items(
         additional_limit=additional_limit,
         min_airship_power=min_airship_power,
@@ -124,7 +118,7 @@ def get_best_airship_item(additional_limit, min_airship_power, tier):
     )
 
 
-def get_worker_exp(limit, setup, tier):
+def get_worker_exp(limit: int, setup: list[ItemType], tier: int):
     res = worker_exp_request(limit, setup, tier)
     with open(os.getenv("OUTPUT_FILENAME"), "a") as file:
         file.write(
@@ -150,7 +144,7 @@ def get_worker_exp(limit, setup, tier):
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
                     f"{experience_print:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
-                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience/time_in_seconds*3600, 2):.<12}|\n"
+                    f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience / time_in_seconds * 3600, 2):.<12}|\n"
                 )
             except Exception as e:
                 file.write(
@@ -160,12 +154,12 @@ def get_worker_exp(limit, setup, tier):
     return res
 
 
-def get_clothes_exp(limit, tier):
+def get_clothes_exp(limit: int, tier: int) -> None:
     setup = [ItemType.al, ItemType.am, ItemType.hm,
              ItemType.hl, ItemType.gl, ItemType.bl]
     get_worker_exp(limit + 10, setup, tier)
 
 
-def get_meal_exp(limit, tier):
+def get_meal_exp(limit: int, tier: int) -> None:
     setup = [ItemType.fm]
     get_worker_exp(limit, setup, tier)
