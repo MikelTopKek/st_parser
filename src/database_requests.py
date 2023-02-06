@@ -119,7 +119,7 @@ def items_list(exp, limit, tier, setup, min_airship_power, max_cost_of_1m_exp):
                         ),
                     ),
                 ]
-            ).desc()
+            )
         )
         .limit(limit)
     ).fetchall()
@@ -157,4 +157,58 @@ def worker_exp_request(limit, setup, tier):
                                                                      item_table.c.worker3)).desc()
         )
         .limit(limit + 10)
+    ).fetchall()
+
+
+def best_crafting_items(limit, tier, min_tier):
+    conn = engine
+    return conn.execute(
+        sa.select(
+            [
+                item_table.c.name,
+                item_table.c.item_type,
+                item_table.c.tier,
+                item_table.c.base_gold_value,
+                item_table.c.worker1,
+                item_table.c.worker2,
+                item_table.c.worker3,
+                item_table.c.base_crafting_time,
+                market_stats.c.gold_price,
+                market_stats.c.created_at,
+                market_stats.c.quality,
+            ]
+        )
+        .select_from(
+            item_table.join(market_stats, item_table.c.uid ==
+                            market_stats.c.item_id)
+        )
+        .filter(
+            sa.and_(
+                market_stats.c.created_at == recent_date(),
+                item_table.c.tier <= tier,
+                item_table.c.tier >= min_tier,
+                market_stats.c.quality == ItemQuality.common,
+            )
+        )
+        .order_by(
+            case(
+                [
+                    (
+                        market_stats.c.gold_price > 0,
+                        3600 / (item_table.c.base_crafting_time / all_workers_bonus_speed(item_table.c.worker1,
+                                                                                          item_table.c.worker2,
+                                                                                          item_table.c.worker3))
+                        * market_stats.c.gold_price
+                    ),
+                    (
+                        market_stats.c.gold_price == 0,
+                        3600 / (item_table.c.base_crafting_time / all_workers_bonus_speed(item_table.c.worker1,
+                                                                                          item_table.c.worker2,
+                                                                                          item_table.c.worker3))
+                        * item_table.c.base_gold_value * 10
+                    )
+                ]
+            ).desc()
+        )
+        .limit(limit)
     ).fetchall()
