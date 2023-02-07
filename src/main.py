@@ -7,8 +7,9 @@ from .data_creation import create_live_data, creating_data, get_item_details
 from .item_requests import (
     get_best_airship_item,
     get_best_blue_seven_items,
-    get_optimal_items, get_clothes_exp, get_meal_exp, get_bets_crafting_items,
+    get_optimal_items, get_clothes_exp, get_meal_exp, get_best_crafting_items,
 )
+from .receipt_changing import create_csv_with_blueprints, update_db_with_blueprints
 from .settings import engine
 
 meta = MetaData()
@@ -64,8 +65,16 @@ def main():
 
     elif request_type == "best_craft":
         print('Getting best crafting items')
-        # create_live_data()
-        get_bets_crafting_items(
-            limit=additional_limit + 30, tier=tier, min_tier=min_tier)
+        create_live_data()
+        get_best_crafting_items(
+            limit=additional_limit, tier=tier, min_tier=min_tier)
+
+    elif request_type == "get_blueprints":
+        print('Getting blueprints to ./datafiles/blueprints.csv')
+        create_csv_with_blueprints()
+
+    elif request_type == "confirm_blueprints":
+        print('Confirm blueprints from ./datafiles/blueprints.csv')
+        update_db_with_blueprints()
 
     engine.dispose()
