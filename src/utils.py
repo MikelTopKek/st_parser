@@ -52,7 +52,8 @@ def worker_bonus_speed(worker):
     else:
         try:
             level = int(workers_lvl[worker])
-        except KeyError:
+        except KeyError as e:
+            print(f'KeyError when worker_bonus_speed on {e}: {worker}')
             level = 0
         return worker_lvl_crafting_bonus_list[level] * 0.01
 
