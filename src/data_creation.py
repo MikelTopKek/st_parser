@@ -125,7 +125,7 @@ def create_live_data():
         data = json.load(file)
 
         for live_item in data["data"]:
-            if live_item["tType"] == "o":
+            if live_item["tType"] in ["o", "os"]:
                 try:
                     item = session.query(Item).get(live_item["uid"])
 
@@ -157,12 +157,12 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
         if min_airship_power > 0:
             file.write(
                 f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
-                f' Gold{"":.<6}| Index{"":.<2}| Airpower|\n'
+                f' Gold{"":.<6}| Base gold| Index| Airpower|\n'
             )
         else:
             file.write(
                 f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
-                f' Gold{"":.<6}| Index{"":.<1}| 1M EXP cost{"":.<0}|\n'
+                f' Gold{"":.<6}| Base gold| Index| 1M EXP cost{"":.<0}|\n'
             )
         avg = []
         for item in res:
@@ -178,8 +178,8 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
                     million_exp_cost = ""
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                    f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| "
-                    f"{round(item[5]/item[3], 2):.<7}| {million_exp_cost}{airpower}\n"
+                    f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| {format_number(item[8]):.<9}| "
+                    f"{round((item[5] - item[8]) / item[3], 2):.<5}| {million_exp_cost} {airpower}\n"
                 )
                 avg.append((item[5] - item[8]) / item[3])
             except Exception:
