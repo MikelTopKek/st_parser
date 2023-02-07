@@ -5,9 +5,20 @@ from sqlalchemy.orm import sessionmaker
 
 from src.constants import DATA_SPREADSHEED_FILENAME
 from src.models import Item, MarketStats
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_HOST = os.getenv('DATABASE_HOST')
+DATABASE_PORT = os.getenv('DATABASE_PORT')
+POSTGRES_DB = os.getenv('POSTGRES_DB')
+DATABASE_ENGINE = os.getenv('DATABASE_ENGINE')
+POSTGRES_USER = os.getenv('POSTGRES_USER')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+
 
 engine = create_engine(
-    "postgresql+psycopg2://postgres:postgres@db:5432/postgres")
+    f"{DATABASE_ENGINE}://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{POSTGRES_DB}")
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -38,7 +49,7 @@ workers_lvl = {'sun_dragon': os.getenv('SUN_DRAGON_LVL'),
                'tailor': os.getenv('TAILOR_LVL'),
                }
 
-guild_bonus_craft_speed = 1 - int(os.getenv('GUILD_BONUS_CRAFT_SPEED')) * 0.01
+guild_bonus_craft_speed = 1 - int(os.environ.get('GUILD_BONUS_CRAFT_SPEED')) * 0.01
 
 
 item_table = Item.__table__
