@@ -1,13 +1,14 @@
 import datetime
-
 import logging.config
 
 from src.data_creation import get_section_item
-from src.database_requests import best_blue_seven_plus_items_list, worker_exp_request, best_crafting_items, get_item
+from src.database_requests import (best_blue_seven_plus_items_list,
+                                   best_crafting_items, get_item,
+                                   worker_exp_request)
 from src.models import ItemType
-from src.settings import guild_bonus_craft_speed, SOLD_PER_HOUR, NEEDED_EXP, NUMBER_OF_CRAFT_SLOTS, LOGGING
-from src.utils import format_number, all_workers_bonus_speed
-
+from src.settings import (LOGGING, NEEDED_EXP, NUMBER_OF_CRAFT_SLOTS,
+                          SOLD_PER_HOUR, guild_bonus_craft_speed)
+from src.utils import all_workers_bonus_speed, format_number, sigil_craft_cost
 
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main_logger')
@@ -17,9 +18,7 @@ error_logger = logging.getLogger('error_logger')
 def get_best_blue_seven_items(limit: int) -> list:
     res = best_blue_seven_plus_items_list(limit)
 
-    logger.info(
-        f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Quality{"":.<3}| Gold{"":.<6}|'
-    )
+    logger.info(f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Quality{"":.<3}| Gold{"":.<6}|')
     for item in res:
         try:
             gold_value = format_number(item[4])
@@ -27,7 +26,7 @@ def get_best_blue_seven_items(limit: int) -> list:
                 f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
                 f"{item[3].value:.<10}| {gold_value:.<10}|"
             )
-        except Exception:
+        except KeyError:
             error_logger.error(
                 f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
             )
@@ -171,7 +170,7 @@ def get_worker_exp(limit: int, setup: list[ItemType], tier: int):
                 f"{experience_print:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
                 f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience / time_in_seconds * 3600, 2):.<12}|"
             )
-        except Exception as e:
+        except KeyError as e:
             error_logger.error(
                 f"{str(e)}----Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} {item[6]}is broken"
             )
@@ -189,6 +188,17 @@ def get_meal_exp(limit: int, tier: int) -> None:
     setup = [ItemType.fm]
     get_worker_exp(limit, setup, tier)
 
+def sigil_profit(name: str, market_cost: float, material_cost: float,
+                 blue_items_avg_cost: float, moonstone_cost: float, sigil_time_index: float) -> str:
+
+    sigil_cost = sigil_craft_cost(blue_items_avg_cost=blue_items_avg_cost,
+                                  moonstone_cost=moonstone_cost,
+                                  material_cost=material_cost)
+
+    profit_index = (market_cost * 0.9 * 4 - sigil_cost) * sigil_time_index / 1_000_000
+    profit = format_number(profit_index * NUMBER_OF_CRAFT_SLOTS)
+    return f'{name} sigil costs {profit} per {NUMBER_OF_CRAFT_SLOTS} slots ' \
+            f'because of material cost: {format_number(material_cost)}.| Profit_index: {format_number(profit_index)}'
 
 def cheapest_sigil(limit):
     blue_res = get_best_blue_seven_items(limit=limit)
@@ -197,7 +207,7 @@ def cheapest_sigil(limit):
     for item in blue_res:
         try:
             blue_items_avg_cost += item[4]
-        except Exception as e:
+        except KeyError as e:
             error_logger.error(f"{str(e)}; Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken")
 
     blue_items_avg_cost /= limit
@@ -212,20 +222,15 @@ def cheapest_sigil(limit):
 
     sigil_time_index: float = 60 / 53
 
-    def sigil_profit(name: str, market_cost: float, material_cost: float) -> str:
-        from src.utils import sigil_craft_cost
-        sigil_craft_cost = sigil_craft_cost(blue_items_avg_cost=blue_items_avg_cost,
-                                            moonstone_cost=moonstone_cost,
-                                            material_cost=material_cost)
-
-        profit_index = (market_cost * 0.9 * 4 - sigil_craft_cost) * sigil_time_index / 1_000_000
-        profit = format_number(profit_index * NUMBER_OF_CRAFT_SLOTS)
-        return f'{name} sigil costs {profit} per {NUMBER_OF_CRAFT_SLOTS} slots ' \
-               f'because of material cost: {format_number(material_cost)}.| Profit_index: {format_number(profit_index)}'
-
-    blue_sigil_craft_cost = sigil_profit(name='Blue', market_cost=blue_sigil_cost, material_cost=magmacore_cost)
-    red_sigil_craft_cost = sigil_profit(name='Red', market_cost=red_sigil_cost, material_cost=crabclaw_cost)
-    green_sigil_craft_cost = sigil_profit(name='Green', market_cost=green_sigil_cost, material_cost=obsidian_cost)
+    blue_sigil_craft_cost = sigil_profit(name='Blue', market_cost=blue_sigil_cost, material_cost=magmacore_cost,
+                                         blue_items_avg_cost=blue_items_avg_cost, moonstone_cost=moonstone_cost,
+                                         sigil_time_index=sigil_time_index)
+    red_sigil_craft_cost = sigil_profit(name='Red', market_cost=red_sigil_cost, material_cost=crabclaw_cost,
+                                         blue_items_avg_cost=blue_items_avg_cost, moonstone_cost=moonstone_cost,
+                                         sigil_time_index=sigil_time_index)
+    green_sigil_craft_cost = sigil_profit(name='Green', market_cost=green_sigil_cost, material_cost=obsidian_cost,
+                                         blue_items_avg_cost=blue_items_avg_cost, moonstone_cost=moonstone_cost,
+                                         sigil_time_index=sigil_time_index)
 
     return f"Sigils:\n" \
            f"{blue_sigil_craft_cost}\n" \
@@ -266,7 +271,7 @@ def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
                 f"{round(gold_value / time_in_minutes * 60 / 1_000_000, 2):.<22}| {is_only_crystal}"
             )
 
-        except Exception as e:
+        except KeyError as e:
             error_logger.error(
                 f"{str(e)}----Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} {item[6]}is broken"
             )

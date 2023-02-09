@@ -1,23 +1,16 @@
 import json
+import logging.config
 
 import pandas as pd
 
+from src.constants import DATA_SPREADSHEED_FILENAME
 from src.database_requests import items_list
 from src.models import Item, ItemQuality, ItemType, MarketStats
-from src.settings import (
-    ITEM_LIVE_URL,
-    ITEM_NAMES_URL,
-    ITEM_SHOP_URL,
-    data_spreadsheet_file,
-    fresh_data_file,
-    item_details_file,
-    live_data_file,
-    raw_data_file,
-    session, LOGGING,
-)
-from src.utils import check_is_none, format_number, get_data, quality_price_increase
-import logging.config
-
+from src.settings import (ITEM_LIVE_URL, ITEM_NAMES_URL, ITEM_SHOP_URL,
+                          LOGGING, fresh_data_file, item_details_file,
+                          live_data_file, raw_data_file, session)
+from src.utils import (check_is_none, format_number, get_data,
+                       quality_price_increase)
 
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main_logger')
@@ -77,14 +70,13 @@ def create_marketstats_item(item_data):
 
 def get_metadata():
     get_raw_data()
-    with open(raw_data_file) as file:
+    with open(raw_data_file, encoding='UTF-8') as file:
         data = json.load(file)
         items = {}
         for field in data["texts"]:
             items[field] = data["texts"][field]
         item_names = []
         item_values = []
-        item_descriptions = []
         for i, field in enumerate(items):
             if 8844 <= i <= 11300:
                 if field.find("_name_o") == -1 and field.find("_name") != -1:
@@ -92,19 +84,16 @@ def get_metadata():
                     item_names.append(name)
                     item_values.append(items[field])
 
-                elif field.find("_desc") != -1:
-                    item_descriptions.append(field.replace("_desc", ""))
-
-    return item_names, item_values, item_descriptions
+    return item_names, item_values
 
 
 def creating_data():
-    item_names, item_values, item_descriptions = get_metadata()
+    item_names, item_values = get_metadata()
 
     get_fresh_data()
 
     item_values_dict = dict(zip(item_names, item_values))
-    with open(fresh_data_file) as file:
+    with open(fresh_data_file, encoding='UTF-8') as file:
         data = json.load(file)
         for field in data:
             if data[field]["uid"] in ["uncommon", "flawless", "epic", "legendary"]:
@@ -127,7 +116,7 @@ def creating_data():
             }
             try:
                 create_item(item_data)
-            except Exception as e:
+            except KeyError as e:
                 error_logger.error(str(e))
 
 
@@ -135,7 +124,7 @@ def create_live_data():
 
     get_live_data()
 
-    with open(live_data_file) as file:
+    with open(live_data_file, encoding='UTF-8') as file:
         data = json.load(file)
 
         for live_item in data["data"]:
@@ -172,8 +161,8 @@ def create_live_data():
                     try:
                         create_item(item_data)
                         logger.info(f'Succesfully created {live_item["uid"]} in db.')
-                    except Exception as e:
-                        error_logger.error(f'Error with creating item {live_item["uid"]}. {str(e)}')
+                    except KeyError as error:
+                        error_logger.error(f'Error with creating item {live_item["uid"]}. {str(error)}')
                     continue
 
 
@@ -212,29 +201,31 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
             )
             avg.append((item[5] - item[8]) / item[3])
             avg_exp.append(item[3])
-        except Exception:
+        except KeyError:
             error_logger.error(
                 f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
             )
+
     if len(avg) > 0 and min_airship_power == 0:
         logger.info(f"Avg cost exp(millions): {sum(avg)/len(avg):.{4}}M")
         return [sum(avg) / len(avg), sum(avg_exp) / len(avg_exp)]
-    else:
-        return [0, 0]
+
+    return [0, 0]
 
 
 def add_item_details_json():
 
     excel_data_df = pd.read_excel(
-        data_spreadsheet_file, sheet_name="Bluelogger.infos")
+        DATA_SPREADSHEED_FILENAME, sheet_name="Blueprints")
     json_str = excel_data_df.to_json(orient="records")
 
-    logger.info(json_str)
+    with open(item_details_file, "w", encoding='UTF-8') as file:
+        file.write(json_str)
 
 
 def get_item_details():
     add_item_details_json()
-    with open(item_details_file) as file:
+    with open(item_details_file, encoding='UTF-8') as file:
         excel_json_data = json.load(file)
 
         for excel_item in excel_json_data:

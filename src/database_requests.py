@@ -3,7 +3,6 @@ from sqlalchemy import case
 
 from src.models import ItemQuality, ItemType
 from src.settings import engine, item_table, market_stats
-from src.utils import all_workers_bonus_speed
 
 
 def recent_date():

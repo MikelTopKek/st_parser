@@ -1,7 +1,9 @@
+# pylint: disable=C0103
 import datetime
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, MetaData, String, Float, Boolean
+from sqlalchemy import (Boolean, Column, DateTime, Enum, Float, ForeignKey,
+                        Integer, MetaData, String)
 from sqlalchemy.orm import declarative_base
 
 metadata = MetaData()
@@ -54,7 +56,7 @@ class ItemQuality(enum.Enum):
     common = "common"
 
 
-class MarketStats(Base):
+class MarketStats(Base):  # pylint: disable=too-few-public-methods
     __tablename__ = "marketstats"
 
     id: int = Column(Integer, primary_key=True)
@@ -68,7 +70,7 @@ class MarketStats(Base):
     created_at: DateTime = Column(DateTime, default=datetime.datetime.utcnow())
 
 
-class Item(Base):
+class Item(Base):  # pylint: disable=too-few-public-methods
     __tablename__ = "item"
 
     uid: str = Column(String, primary_key=True)

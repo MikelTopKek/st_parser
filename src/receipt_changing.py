@@ -1,8 +1,10 @@
-import pandas as pd
 import logging.config
+
+import pandas as pd
+
 from src.database_requests import items_with_blueprints
 from src.models import Item
-from src.settings import session, LOGGING
+from src.settings import LOGGING, session
 
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main_logger')
@@ -47,7 +49,7 @@ def update_db_with_blueprints():
                 updated_item.receipt_availability = bool(int(item[5]))
                 logger.info(f'Update {updated_item.name}, availability now is {updated_item.receipt_availability}')
 
-        except Exception as e:  # pylint: disable=W0718
+        except KeyError as e:
             error_logger.error(f'{str(e)} with item {item[4]}')
 
         session.commit()
