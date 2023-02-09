@@ -63,3 +63,7 @@ def all_workers_bonus_speed(worker1, worker2, worker3):
     bonus2 = 1 - worker_bonus_speed(worker2)
     bonus3 = 1 - worker_bonus_speed(worker3)
     return bonus1*bonus2*bonus3
+
+
+def sigil_craft_cost(blue_items_avg_cost: float, moonstone_cost: float, material_cost: float) -> float:
+    return blue_items_avg_cost + moonstone_cost * 2 + material_cost * 6

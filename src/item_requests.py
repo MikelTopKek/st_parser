@@ -166,14 +166,14 @@ def get_meal_exp(limit: int, tier: int) -> None:
 
 
 def cheapest_sigil(limit):
-    blue_res = best_blue_seven_plus_items_list(limit=limit)
+    blue_res = get_best_blue_seven_items(limit=limit)
     blue_items_avg_cost = 0
 
     for item in blue_res:
         try:
             blue_items_avg_cost += item[4]
         except Exception as e:
-            print(f"{str(e)}; Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken")
+            print(f"{str(e)}; Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken\n")
 
     blue_items_avg_cost /= limit
 
@@ -181,24 +181,37 @@ def cheapest_sigil(limit):
     obsidian_cost = get_item('obsidian')[1]
     magmacore_cost = get_item('magmacore')[1]
     crabclaw_cost = get_item('crabclaw')[1]
+    blue_sigil_cost = get_item('sparksigil2')[1]
+    red_sigil_cost = get_item('mightsigil2')[1]
+    green_sigil_cost = get_item('gracesigil2')[1]
 
-    sigil_cost = blue_items_avg_cost + moonstone_cost * 2 + min(obsidian_cost, magmacore_cost, crabclaw_cost) * 6
-    sigil_index = (14_400_000 - sigil_cost) * 60 / 53
-    if magmacore_cost <= crabclaw_cost and magmacore_cost <= obsidian_cost:
-        sigil = 'Blue'
-    elif crabclaw_cost <= obsidian_cost and crabclaw_cost < magmacore_cost:
-        sigil = 'Red'
-    else:
-        sigil = 'Green'
+    sigil_time_index: float = 60 / 53
 
-    return f"{sigil} Sigil's cost: {format_number(sigil_cost)}, Index: {format_number(sigil_index)}\n"
+    def sigil_profit(name: str, market_cost: float, material_cost: float) -> str:
+        from src.utils import sigil_craft_cost
+        sigil_craft_cost = sigil_craft_cost(blue_items_avg_cost=blue_items_avg_cost,
+                                            moonstone_cost=moonstone_cost,
+                                            material_cost=material_cost)
+
+        profit_index = (market_cost * 0.9 * 4 - sigil_craft_cost) * sigil_time_index / 1_000_000
+        profit = format_number(profit_index * NUMBER_OF_CRAFT_SLOTS)
+        return f'{name} sigil costs {profit} per {NUMBER_OF_CRAFT_SLOTS} slots ' \
+               f'because of material cost: {format_number(material_cost)}.| Profit_index: {format_number(profit_index)}'
+
+    blue_sigil_craft_cost = sigil_profit(name='Blue', market_cost=blue_sigil_cost, material_cost=magmacore_cost)
+    red_sigil_craft_cost = sigil_profit(name='Red', market_cost=red_sigil_cost, material_cost=crabclaw_cost)
+    green_sigil_craft_cost = sigil_profit(name='Green', market_cost=green_sigil_cost, material_cost=obsidian_cost)
+
+    return f"{blue_sigil_craft_cost}\n" \
+           f"{red_sigil_craft_cost}\n" \
+           f"{green_sigil_craft_cost}\n"
 
 
 def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
-    res = best_crafting_items(limit=limit * 5, tier=tier, min_tier=min_tier)
+    res = best_crafting_items(limit=limit * 3, tier=tier, min_tier=min_tier)
 
     with open(os.getenv("OUTPUT_FILENAME"), "a") as file:
-        file.write(cheapest_sigil(limit=limit))
+        file.write(cheapest_sigil(limit=round(limit / 2, 0)))
 
         file.write(
             f'Type{"":.<12}| Tier{"":.<0}| Name{"":.<21}| '
