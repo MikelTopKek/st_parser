@@ -4,7 +4,7 @@ import os
 from src.data_creation import get_section_item
 from src.database_requests import best_blue_seven_plus_items_list, worker_exp_request, best_crafting_items, get_item
 from src.models import ItemType
-from src.settings import guild_bonus_craft_speed
+from src.settings import guild_bonus_craft_speed, SOLD_PER_HOUR, NEEDED_EXP, NUMBER_OF_CRAFT_SLOTS
 from src.utils import format_number, all_workers_bonus_speed
 
 
@@ -34,12 +34,12 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
                       tier: int = 0, min_exp: int = 0):
     print('Filtering optimal items due to env params...')
     # Elements
-    get_section_item("Elements", min_exp, 10 + additional_limit,
+    elements_avg = get_section_item("Elements", min_exp, 10 + additional_limit,
                      tier, [ItemType.z], max_cost_of_1m_exp,
                      min_airship_power,
                      )
     # Breastplates
-    get_section_item(
+    brestpates_avg = get_section_item(
         "Breastplates",
         min_exp * 1.2,
         3 + additional_limit,
@@ -49,7 +49,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
         min_airship_power,
     )
     # Helmets
-    get_section_item(
+    helmets_avg = get_section_item(
         "Helmets",
         min_exp * 1.5,
         3 + additional_limit,
@@ -59,7 +59,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
         min_airship_power,
     )
     # Weapons (on rack)
-    get_section_item(
+    weapons_rack_avg = get_section_item(
         "Weapons on rack",
         min_exp * 1.5,
         3 + additional_limit,
@@ -69,7 +69,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
         min_airship_power,
     )
     # Weapons (on table)
-    get_section_item(
+    weapons_table_avg = get_section_item(
         "Weapons on table",
         min_exp * 1.5,
         3 + additional_limit,
@@ -80,7 +80,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
         min_airship_power,
     )
     # Misc. armor
-    get_section_item(
+    misc_armor_avg = get_section_item(
         "Misc armor",
         min_exp,
         5 + additional_limit,
@@ -90,7 +90,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
         min_airship_power,
     )
     # Accessories
-    get_section_item(
+    accesoires_avg = get_section_item(
         "Accessories",
         min_exp * 1.4,
         5 + additional_limit,
@@ -108,6 +108,25 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
         max_cost_of_1m_exp,
         min_airship_power,
     )
+    avg_1m_exp_cost: float = (accesoires_avg[0] + helmets_avg[0] + elements_avg[0] + brestpates_avg[0]
+                              + misc_armor_avg[0] + weapons_rack_avg[0] + weapons_table_avg[0]) / 7  # in millions
+    sold_per_hour: int = SOLD_PER_HOUR
+    avg_exp_per_item: float = (accesoires_avg[1] + helmets_avg[1] + elements_avg[1] + brestpates_avg[1]
+                               + misc_armor_avg[1] + weapons_rack_avg[1] + weapons_table_avg[1]) / 7  # in millions
+    experience: int = NEEDED_EXP  # in millions, how much exp need to get
+
+    number_of_items: float = experience * 1_000_000 / avg_exp_per_item
+
+    gold_required: float = experience * avg_1m_exp_cost  # in millions, how much gold we need to up
+
+    hours_to_sell_items: float = number_of_items / sold_per_hour  # Time to spend to sell all items
+
+    print(f'Exp needed: {experience} millions, sold per hour = {sold_per_hour}.\n'
+          f'AVG item experience: {format_number(avg_exp_per_item)} exp, '
+          f'avg 1m experience cost: {format_number(avg_1m_exp_cost)}m.\n'
+          f'Need {format_number(number_of_items)} items.\n'
+          f'Gold we need to sell items on {format_number(gold_required)}\n'
+          f'Time to spend to sell all items: {format_number(hours_to_sell_items)} hours.')
 
 
 def get_best_airship_item(additional_limit: int, min_airship_power: int, tier: int) -> None:
@@ -215,7 +234,7 @@ def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
 
         file.write(
             f'Type{"":.<12}| Tier{"":.<0}| Name{"":.<21}| '
-            f'Market value| Crafting time| Index(millions gold/h)| Base gold value|\n'
+            f'Market value| Base gold value| Quantity_gold| Crafting time| Index(millions gold/h)|\n'
         )
 
         for item in res:
@@ -227,18 +246,21 @@ def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
                 minutes=time_in_minutes
             )
             try:
+                # if round(gold_value / time_in_minutes * 60 / 1_000_000, 2) > 1:
+                if item[8] > 0:
+                    gold_value = item[8]
+                    is_only_crystal = 'For gold'
+                else:
+                    gold_value = item[3] * 10
+                    is_only_crystal = 'Only crystal'
 
-                gold_value = item[8]
-                if round(gold_value / time_in_minutes * 60 / 1_000_000, 2) > 1:
-                    file.write(
-                        f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                        f"{format_number(gold_value):.<12}| {str(item_time):.<13}| "
-                        f"{round(gold_value / time_in_minutes * 60 / 1_000_000, 2):.<22}| {format_number(item[3]):.<15}|\n"
-                    )
+                file.write(
+                    f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| {format_number(gold_value):.<12}| "
+                    f"{format_number(item[3]):.<15}| {item[12]:.<13}| {str(item_time):.<13}| "
+                    f"{round(gold_value / time_in_minutes * 60 / 1_000_000, 2):.<22}| {is_only_crystal}\n"
+                )
 
             except Exception as e:
                 file.write(
                     f"{str(e)}----Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} {item[6]}is broken\n"
                 )
-
-    return res

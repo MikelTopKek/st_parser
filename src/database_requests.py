@@ -74,7 +74,7 @@ def items_list(exp, limit, tier, setup, min_airship_power, max_cost_of_1m_exp):
                 item_table.c.item_type.in_(setup),
                 item_table.c.tier <= tier,
                 (market_stats.c.gold_price - item_table.c.base_gold_value) /
-                item_table.c.merchant_exp < max_cost_of_1m_exp,
+                item_table.c.merchant_exp <= max_cost_of_1m_exp,
                 item_table.c.airship_power > min_airship_power,
                 case(
                     [
@@ -178,7 +178,8 @@ def best_crafting_items(limit, tier, min_tier):
                 market_stats.c.gold_price,
                 market_stats.c.created_at,
                 market_stats.c.quality,
-                item_table.c.receipt_availability
+                item_table.c.receipt_availability,
+                market_stats.c.gold_qty
             ]
         )
         .select_from(
@@ -195,9 +196,19 @@ def best_crafting_items(limit, tier, min_tier):
             )
         )
         .order_by(
+            case(
+                [
                     (
-                        market_stats.c.gold_price / item_table.c.base_crafting_time
-                    ).desc()
+                        market_stats.c.gold_price > 0,
+                        market_stats.c.gold_price / item_table.c.base_crafting_time,
+                    ),
+                    (
+                        market_stats.c.gold_price == 0,
+                        item_table.c.base_gold_value * 10 / item_table.c.base_crafting_time
+
+                    ),
+                ]
+            ).desc()
         )
         .limit(limit)
     ).fetchall()
