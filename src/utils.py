@@ -47,7 +47,7 @@ def quality_price_increase(item):
 
 
 def worker_bonus_speed(worker):
-    if worker == 'Empty':
+    if worker == 'Empty' or worker is None:
         return 0
     else:
         try:
