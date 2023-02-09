@@ -143,9 +143,23 @@ def create_live_data():
                         "received_at": live_item["createdAt"],
                     }
                     create_marketstats_item(item_data)
-                except AttributeError:
+                except AttributeError as e:
                     print(
-                        f'uid:{live_item["uid"]} tier:{live_item["tier"]} doesn`t exist')
+                        f'uid:{live_item["uid"]} tier:{live_item["tier"]} {live_item["tType"]} doesn`t exist. '
+                        f'Error: {str(e)} '
+                        f'Trying to create it in db...')
+                    item_data = {
+                        "name": live_item["uid"],
+                        "uid": live_item["uid"],
+                        "tier": live_item["tier"],
+                        "item_type": ItemType.xm,
+                        "image": "image",
+                    }
+                    try:
+                        create_item(item_data)
+                        print(f'Succesfully created {live_item["uid"]} in db.')
+                    except Exception as e:
+                        print(f'Error with creating item {live_item["uid"]}. {str(e)}')
                     continue
 
 
