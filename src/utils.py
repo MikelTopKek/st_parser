@@ -1,9 +1,13 @@
 import json
-
+import logging.config
 import requests
 
 from src.models import ItemQuality
-from src.settings import workers_lvl, worker_lvl_crafting_bonus_list
+from src.settings import workers_lvl, worker_lvl_crafting_bonus_list, LOGGING
+
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('main_logger')
+error_logger = logging.getLogger('error_logger')
 
 
 def get_data(url, file_name):
@@ -52,7 +56,7 @@ def worker_bonus_speed(worker):
         try:
             level = int(workers_lvl[worker])
         except KeyError as e:
-            print(f'KeyError when worker_bonus_speed on {e}: {worker}')
+            error_logger.error(f'KeyError when worker_bonus_speed on {e}: {worker}')
             level = 0
         return worker_lvl_crafting_bonus_list[level] * 0.01
 

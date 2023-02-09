@@ -30,7 +30,6 @@ ITEM_DETAILS_URL = "https://docs.google.com/spreadsheets/d/1WLa7X8h3O0-aGKxeAlCL
 raw_data_file = os.getenv("RAW_DATA_FILENAME")
 fresh_data_file = os.getenv("FRESH_DATA_FILENAME")
 live_data_file = os.getenv("LIVE_DATA_FILENAME")
-output_file = os.getenv("OUTPUT_FILENAME")
 item_details_file = os.getenv("ITEM_DETAILS_NAME")
 data_spreadsheet_file = DATA_SPREADSHEED_FILENAME
 
@@ -55,6 +54,42 @@ workers_lvl = {'sun_dragon': os.getenv('SUN_DRAGON_LVL'),
                }
 
 guild_bonus_craft_speed = 1 - int(os.environ.get('GUILD_BONUS_CRAFT_SPEED')) * 0.01
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'main_formatter': {
+            'format': '%(asctime)s %(levelname)-3s |%(message)s',
+            'datefmt': '%m-%d %H:%M'
+        },
+        'error_formatter': {
+            'format': '%(asctime)s %(levelname)-3s [%(filename)s:%(lineno)d] |%(message)s',
+            'datefmt': '%m-%d %H:%M'
+        },
+    },
+    'handlers': {
+        'main_handler': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'main_formatter'
+        },
+        'error_handler': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'error_formatter'
+        },
+    },
+    'loggers': {
+        'main_logger': {
+            'level': 'INFO',
+            'handlers': ['main_handler']
+        },
+        'error_logger': {
+            'level': 'ERROR',
+            'handlers': ['error_handler']
+        },
+    }
+}
 
 
 item_table = Item.__table__
