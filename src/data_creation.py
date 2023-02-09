@@ -39,9 +39,14 @@ def get_live_data():
 
 def create_item(item_data):
 
+    if session.query(Item).filter(Item.uid == item_data['uid']).scalar():
+        logger.info(f'Item {item_data["uid"]} already exists, skipping...')
+        return
+
     new_item = Item(**item_data)
     session.add(new_item)
     session.commit()
+    logger.info('Item %s %s succesfully created!', item_data["uid"], item_data["tier"])
 
 
 def update_item(excel_item):
@@ -49,18 +54,22 @@ def update_item(excel_item):
         updated_item = (
             session.query(Item).filter(Item.name == excel_item["Name"]).first()
         )
+        if updated_item.airship_power == excel_item["Airship Power"]:
+            logger.info(f'Item {updated_item.name} alredy have the same airship power. Skipping...')
+            return
         updated_item.airship_power = excel_item["Airship Power"]
         if updated_item.worker2 is None:
             updated_item.worker2 = "Empty"
         if updated_item.worker3 is None:
             updated_item.worker3 = "Empty"
         session.commit()
-        logger.info(updated_item.name, updated_item.airship_power)
-    except Exception as e:
+        logger.info(f'Item {updated_item.name} updated with airship power {updated_item.airship_power} successfully!')
+    except TypeError as e:
         error_logger.error(f'Error with item {excel_item["Name"]} Exc:{str(e)}')
 
 
 def create_marketstats_item(item_data):
+
     new_item_market_stats = MarketStats(**item_data)
     session.add(new_item_market_stats)
     session.commit()
