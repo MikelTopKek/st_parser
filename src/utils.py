@@ -7,11 +7,10 @@ from src.settings import workers_lvl, worker_lvl_crafting_bonus_list
 
 
 def get_data(url, file_name):
-    request = requests.get(url=url)
+    request = requests.get(url=url, timeout=5)
     data = request.json()
     json_data = json.dumps(data, indent=4)
-    f = file_name
-    with open(f, "w") as file:
+    with open(file_name, "w") as file:
         file.write(json_data)
 
 
