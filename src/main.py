@@ -10,9 +10,13 @@ from .item_requests import (
     get_optimal_items, get_clothes_exp, get_meal_exp, get_best_crafting_items,
 )
 from .receipt_changing import create_csv_with_blueprints, update_db_with_blueprints
-from .settings import engine
+from .settings import engine, LOGGING
+import logging.config
 
 meta = MetaData()
+
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('main_logger')
 
 
 def main():
@@ -23,27 +27,26 @@ def main():
     min_exp = int(os.getenv("MIN_EXP"))
     max_cost_of_1m_exp = int(os.getenv('MAX_COST_OF_1M_EXP'))
     min_tier = int(os.getenv('MIN_TIER'))
-    open(os.getenv("OUTPUT_FILENAME"), "w").close()
 
     with engine.connect() as conn:
         with conn.begin():
             meta.create_all(engine)
 
     if request_type == "filling_data":
-        print("Filling db with data...")
+        logger.info("Filling db with data...")
         creating_data()
         get_item_details()
 
     elif request_type == "optimal_items":
-        print('Getting optimal items...')
+        logger.info('Getting optimal items...')
         create_live_data()
         get_optimal_items(additional_limit=additional_limit,
                           tier=tier, min_exp=min_exp,
                           max_cost_of_1m_exp=max_cost_of_1m_exp)
 
     elif request_type == "best_airship_item":
-        print("Getting best items with highest airship power...")
-        create_live_data()
+        logger.info("Getting best items with highest airship power...")
+        # create_live_data()
         get_best_airship_item(
             additional_limit=additional_limit,
             min_airship_power=min_airship_power,
@@ -51,30 +54,30 @@ def main():
         )
 
     elif request_type == "blue_seven_item":
-        print("Getting cheapest flawless and better tier 7+ items...")
-        create_live_data()
+        logger.info("Getting cheapest flawless and better tier 7+ items...")
+        # create_live_data()
         get_best_blue_seven_items(20)
 
     elif request_type == "clothes_items":
-        print('Getting clothes worker experience')
+        logger.info('Getting clothes worker experience')
         get_clothes_exp(limit=additional_limit, tier=tier)
 
     elif request_type == "meals_items":
-        print('Getting meals worker experience')
+        logger.info('Getting meals worker experience')
         get_meal_exp(limit=additional_limit, tier=tier)
 
     elif request_type == "best_craft":
-        print('Getting best crafting items')
-        create_live_data()
+        logger.info('Getting best crafting items')
+        # create_live_data()
         get_best_crafting_items(
             limit=additional_limit, tier=tier, min_tier=min_tier)
 
     elif request_type == "get_blueprints":
-        print('Getting blueprints to ./datafiles/blueprints.csv')
+        logger.info('Getting blueprints to ./datafiles/blueprints.csv')
         create_csv_with_blueprints()
 
     elif request_type == "confirm_blueprints":
-        print('Confirm blueprints from ./datafiles/blueprints.csv')
+        logger.info('Confirm blueprints from ./datafiles/blueprints.csv')
         update_db_with_blueprints()
 
     engine.dispose()

@@ -1,8 +1,12 @@
 import pandas as pd
-
+import logging.config
 from src.database_requests import items_with_blueprints
 from src.models import Item
-from src.settings import session
+from src.settings import session, LOGGING
+
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('main_logger')
+error_logger = logging.getLogger('error_logger')
 
 
 def create_csv_with_blueprints():
@@ -41,9 +45,9 @@ def update_db_with_blueprints():
 
             if updated_item.receipt_availability != int(item[5]):
                 updated_item.receipt_availability = bool(int(item[5]))
-                print(f'Update {updated_item.name}, availability now is {updated_item.receipt_availability}')
+                logger.info(f'Update {updated_item.name}, availability now is {updated_item.receipt_availability}')
 
         except Exception as e:  # pylint: disable=W0718
-            print(f'{str(e)} with item {item[4]}')
+            error_logger.error(f'{str(e)} with item {item[4]}')
 
         session.commit()

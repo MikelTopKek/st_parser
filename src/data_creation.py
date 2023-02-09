@@ -12,11 +12,16 @@ from src.settings import (
     fresh_data_file,
     item_details_file,
     live_data_file,
-    output_file,
     raw_data_file,
-    session,
+    session, LOGGING,
 )
 from src.utils import check_is_none, format_number, get_data, quality_price_increase
+import logging.config
+
+
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('main_logger')
+error_logger = logging.getLogger('error_logger')
 
 
 def get_raw_data():
@@ -28,7 +33,7 @@ def get_fresh_data():
 
 
 def get_live_data():
-    print("Getting live data...")
+    logger.info("Getting live data...")
     get_data(ITEM_LIVE_URL, live_data_file)
 
 
@@ -50,9 +55,9 @@ def update_item(excel_item):
         if updated_item.worker3 is None:
             updated_item.worker3 = "Empty"
         session.commit()
-        print(updated_item.name, updated_item.airship_power)
+        logger.info(updated_item.name, updated_item.airship_power)
     except Exception as e:
-        print(f'Error with item {excel_item["Name"]} Exc:{str(e)}')
+        error_logger.error(f'Error with item {excel_item["Name"]} Exc:{str(e)}')
 
 
 def create_marketstats_item(item_data):
@@ -114,7 +119,7 @@ def creating_data():
             try:
                 create_item(item_data)
             except Exception as e:
-                print(str(e))
+                error_logger.error(str(e))
 
 
 def create_live_data():
@@ -144,7 +149,7 @@ def create_live_data():
                     }
                     create_marketstats_item(item_data)
                 except AttributeError as e:
-                    print(
+                    logger.info(
                         f'uid:{live_item["uid"]} tier:{live_item["tier"]} {live_item["tType"]} doesn`t exist. '
                         f'Error: {str(e)} '
                         f'Trying to create it in db...')
@@ -157,64 +162,65 @@ def create_live_data():
                     }
                     try:
                         create_item(item_data)
-                        print(f'Succesfully created {live_item["uid"]} in db.')
+                        logger.info(f'Succesfully created {live_item["uid"]} in db.')
                     except Exception as e:
-                        print(f'Error with creating item {live_item["uid"]}. {str(e)}')
+                        error_logger.error(f'Error with creating item {live_item["uid"]}. {str(e)}')
                     continue
 
 
 def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_airship_power=0):
     res = items_list(exp, limit, tier, setup,
                      min_airship_power, max_cost_of_1m_exp)
-    with open(output_file, "a") as file:
-        file.write(f"{name}\n")
-        if min_airship_power > 0:
-            file.write(
-                f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
-                f' Gold{"":.<6}| Base gold| Index| Airpower|\n'
+
+    logger.info(f"{name}")
+    if min_airship_power > 0:
+        logger.info(
+            f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
+            f' Gold{"":.<6}| Base gold| Index| Airpower|'
+        )
+    else:
+        logger.info(
+            f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
+            f' Gold{"":.<6}| Base gold| Index| 1M EXP cost{"":.<0}|'
+        )
+    avg = []
+    avg_exp = []
+    for item in res:
+        scale = quality_price_increase(item[4])
+        try:
+            airpower = ""
+            million_exp_cost = f"{round((item[5]-item[8])/item[3], 1):.{4}}M"
+            million_exp_cost = f'{million_exp_cost}{"":.<4}|'
+            gold_value = format_number(item[5])
+            experience = format_number(item[3])
+            if min_airship_power > 0:
+                airpower = f"{item[7]*scale:.<8}|"
+                million_exp_cost = ""
+            logger.info(
+                f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
+                f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| {format_number(item[8]):.<9}| "
+                f"{round((item[5] - item[8]) / pow(item[3], 2) * 10000, 2):.<5}| {million_exp_cost} {airpower}"
             )
-        else:
-            file.write(
-                f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
-                f' Gold{"":.<6}| Base gold| Index| 1M EXP cost{"":.<0}|\n'
+            avg.append((item[5] - item[8]) / item[3])
+            avg_exp.append(item[3])
+        except Exception:
+            error_logger.error(
+                f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
             )
-        avg = []
-        avg_exp = []
-        for item in res:
-            scale = quality_price_increase(item[4])
-            try:
-                airpower = ""
-                million_exp_cost = f"{round((item[5]-item[8])/item[3], 1):.{4}}M"
-                million_exp_cost = f'{million_exp_cost}{"":.<4}|'
-                gold_value = format_number(item[5])
-                experience = format_number(item[3])
-                if min_airship_power > 0:
-                    airpower = f"{item[7]*scale:.<8}|"
-                    million_exp_cost = ""
-                file.write(
-                    f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                    f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| {format_number(item[8]):.<9}| "
-                    f"{round((item[5] - item[8]) / pow(item[3], 2) * 10000, 2):.<5}| {million_exp_cost} {airpower}\n"
-                )
-                avg.append((item[5] - item[8]) / item[3])
-                avg_exp.append(item[3])
-            except Exception:
-                print(
-                    f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
-                )
-        if len(avg) > 0 and min_airship_power == 0:
-            file.write(f"Avg cost exp(millions): {sum(avg)/len(avg):.{4}}M\n")
-            return [sum(avg) / len(avg), sum(avg_exp) / len(avg_exp)]
-        else:
-            return [0, 0]
+    if len(avg) > 0 and min_airship_power == 0:
+        logger.info(f"Avg cost exp(millions): {sum(avg)/len(avg):.{4}}M")
+        return [sum(avg) / len(avg), sum(avg_exp) / len(avg_exp)]
+    else:
+        return [0, 0]
 
 
 def add_item_details_json():
+
     excel_data_df = pd.read_excel(
-        data_spreadsheet_file, sheet_name="Blueprints")
+        data_spreadsheet_file, sheet_name="Bluelogger.infos")
     json_str = excel_data_df.to_json(orient="records")
-    with open(item_details_file, "w") as file:
-        file.write(json_str)
+
+    logger.info(json_str)
 
 
 def get_item_details():
