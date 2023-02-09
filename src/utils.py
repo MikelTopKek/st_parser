@@ -15,13 +15,13 @@ def get_data(url, file_name):
         file.write(json_data)
 
 
-def format_number(number: int) -> str:
+def format_number(number: float) -> str:
     if number >= 1000000:
         return f"{round(number / 1000000, 1)}M"
     elif number >= 1000:
         return f"{round(number / 1000, 1)}k"
     else:
-        return str(number)
+        return str(round(number, 1))
 
 
 def check_is_none(number):
