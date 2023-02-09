@@ -63,7 +63,7 @@ def create_marketstats_item(item_data):
 
 def get_metadata():
     get_raw_data()
-    with open(raw_data_file, "r") as file:
+    with open(raw_data_file) as file:
         data = json.load(file)
         items = {}
         for field in data["texts"]:
@@ -90,7 +90,7 @@ def creating_data():
     get_fresh_data()
 
     item_values_dict = dict(zip(item_names, item_values))
-    with open(fresh_data_file, "r") as file:
+    with open(fresh_data_file) as file:
         data = json.load(file)
         for field in data:
             if data[field]["uid"] in ["uncommon", "flawless", "epic", "legendary"]:
@@ -121,11 +121,11 @@ def create_live_data():
 
     get_live_data()
 
-    with open(live_data_file, "r") as file:
+    with open(live_data_file) as file:
         data = json.load(file)
 
         for live_item in data["data"]:
-            if live_item["tType"] == "o":
+            if live_item["tType"] in ["o", "os"]:
                 try:
                     item = session.query(Item).get(live_item["uid"])
 
@@ -143,9 +143,23 @@ def create_live_data():
                         "received_at": live_item["createdAt"],
                     }
                     create_marketstats_item(item_data)
-                except AttributeError:
+                except AttributeError as e:
                     print(
-                        f'uid:{live_item["uid"]} tier:{live_item["tier"]} doesn`t exist')
+                        f'uid:{live_item["uid"]} tier:{live_item["tier"]} {live_item["tType"]} doesn`t exist. '
+                        f'Error: {str(e)} '
+                        f'Trying to create it in db...')
+                    item_data = {
+                        "name": live_item["uid"],
+                        "uid": live_item["uid"],
+                        "tier": live_item["tier"],
+                        "item_type": ItemType.xm,
+                        "image": "image",
+                    }
+                    try:
+                        create_item(item_data)
+                        print(f'Succesfully created {live_item["uid"]} in db.')
+                    except Exception as e:
+                        print(f'Error with creating item {live_item["uid"]}. {str(e)}')
                     continue
 
 
@@ -157,14 +171,15 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
         if min_airship_power > 0:
             file.write(
                 f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
-                f' Gold{"":.<6}| Index{"":.<2}| Airpower|\n'
+                f' Gold{"":.<6}| Base gold| Index| Airpower|\n'
             )
         else:
             file.write(
                 f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
-                f' Gold{"":.<6}| Index{"":.<1}| 1M EXP cost{"":.<0}|\n'
+                f' Gold{"":.<6}| Base gold| Index| 1M EXP cost{"":.<0}|\n'
             )
         avg = []
+        avg_exp = []
         for item in res:
             scale = quality_price_increase(item[4])
             try:
@@ -178,18 +193,20 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
                     million_exp_cost = ""
                 file.write(
                     f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
-                    f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| "
-                    f"{round(item[5]/item[3], 2):.<7}| {million_exp_cost}{airpower}\n"
+                    f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| {format_number(item[8]):.<9}| "
+                    f"{round((item[5] - item[8]) / pow(item[3], 2) * 10000, 2):.<5}| {million_exp_cost} {airpower}\n"
                 )
                 avg.append((item[5] - item[8]) / item[3])
+                avg_exp.append(item[3])
             except Exception:
                 print(
                     f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
                 )
         if len(avg) > 0 and min_airship_power == 0:
             file.write(f"Avg cost exp(millions): {sum(avg)/len(avg):.{4}}M\n")
-
-    return res
+            return [sum(avg) / len(avg), sum(avg_exp) / len(avg_exp)]
+        else:
+            return [0, 0]
 
 
 def add_item_details_json():
@@ -202,7 +219,7 @@ def add_item_details_json():
 
 def get_item_details():
     add_item_details_json()
-    with open(item_details_file, "r") as file:
+    with open(item_details_file) as file:
         excel_json_data = json.load(file)
 
         for excel_item in excel_json_data:

@@ -22,5 +22,11 @@ env folder contains .env file with environmental variables.
 
 5. Run help to select command you need 
 
+#### If you want to add receipts that you have, you need:
+   * Run receipt_changing to create blueprints.csv file
+   * Modify column blueprints_availability (1 - you have receipt)
+   * Save blueprints.csv
+
+
 Get available commands:
 make help

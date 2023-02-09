@@ -7,21 +7,20 @@ from src.settings import workers_lvl, worker_lvl_crafting_bonus_list
 
 
 def get_data(url, file_name):
-    request = requests.get(url=url)
+    request = requests.get(url=url, timeout=5)
     data = request.json()
     json_data = json.dumps(data, indent=4)
-    f = file_name
-    with open(f, "w") as file:
+    with open(file_name, "w") as file:
         file.write(json_data)
 
 
-def format_number(number: int) -> str:
+def format_number(number: float) -> str:
     if number >= 1000000:
         return f"{round(number / 1000000, 1)}M"
     elif number >= 1000:
         return f"{round(number / 1000, 1)}k"
     else:
-        return str(number)
+        return str(round(number, 1))
 
 
 def check_is_none(number):
@@ -47,12 +46,13 @@ def quality_price_increase(item):
 
 
 def worker_bonus_speed(worker):
-    if worker == 'Empty':
+    if worker == 'Empty' or worker is None:
         return 0
     else:
         try:
             level = int(workers_lvl[worker])
-        except KeyError:
+        except KeyError as e:
+            print(f'KeyError when worker_bonus_speed on {e}: {worker}')
             level = 0
         return worker_lvl_crafting_bonus_list[level] * 0.01
 
@@ -62,3 +62,7 @@ def all_workers_bonus_speed(worker1, worker2, worker3):
     bonus2 = 1 - worker_bonus_speed(worker2)
     bonus3 = 1 - worker_bonus_speed(worker3)
     return bonus1*bonus2*bonus3
+
+
+def sigil_craft_cost(blue_items_avg_cost: float, moonstone_cost: float, material_cost: float) -> float:
+    return blue_items_avg_cost + moonstone_cost * 2 + material_cost * 6

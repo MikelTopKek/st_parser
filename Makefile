@@ -29,8 +29,14 @@ start_meals_items:
 	docker-compose run --rm web python run.py meals_items
 	cat results.txt
 
+get_blueprints:
+	docker-compose run --rm web python run.py get_blueprints
+
+confirm_blueprints:
+	docker-compose run --rm web python run.py confirm_blueprints
+
 start_db:
-	docker-compose -f docker-compose.yml up db;
+	docker-compose -f docker-compose.yml up -d db;
 
 stop:
 	docker-compose -f docker-compose.yml stop;
@@ -63,6 +69,21 @@ make start_best_blue_seven_item
 
 Get best items with highest airship_power of your tier:
 make start_best_airship_item
+
+Get best clothes to get exp to tailor
+start_clothes_items
+
+Get best clothes to get exp to cook
+start_meals_items
+
+Get best item to craft to sell on market
+best_craft
+
+Get .csv with blueprints where you can write blueprints, which you have
+get_blueprints
+
+Confirm your blueprints
+confirm_blueprints
 
 Stop containers:
 make stop
