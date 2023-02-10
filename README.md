@@ -1,4 +1,4 @@
-## Shop Titans parser
+## S_t parser
 
 You need **git**, **Docker** and **Docker-compose** to run this project.
 On Linux-base and MacOS you can use **make** utility to simplify project start.
