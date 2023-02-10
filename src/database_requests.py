@@ -97,26 +97,26 @@ def items_list(exp, limit, tier, setup, min_airship_power, max_cost_of_1m_exp):
                         case(
                             (
                                 market_stats.c.quality == ItemQuality.uncommon,
-                                item_table.c.airship_power * 1.25,
+                                1 / (item_table.c.airship_power * 1.25),
                             ),
                             (
                                 market_stats.c.quality == ItemQuality.flawless,
-                                item_table.c.airship_power * 1.5,
+                                1 / (item_table.c.airship_power * 1.5),
                             ),
                             (
                                 market_stats.c.quality == ItemQuality.epic,
-                                item_table.c.airship_power * 2,
+                                1 / (item_table.c.airship_power * 2),
                             ),
                             (
                                 market_stats.c.quality == ItemQuality.legendary,
-                                item_table.c.airship_power * 3,
+                                1 / (item_table.c.airship_power * 3),
                             ),
                             (
                                 market_stats.c.quality == ItemQuality.common,
-                                item_table.c.airship_power,
+                                1 / (item_table.c.airship_power),
                             ),
-                        ),
-                    ),
+                        )
+                    )
                 ]
             )
         )
