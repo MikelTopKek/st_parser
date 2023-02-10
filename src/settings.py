@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.models import Item, MarketStats
 from src.numeric_utils import to_int
 
 load_dotenv()
@@ -93,7 +92,3 @@ LOGGING = {
         },
     }
 }
-
-
-item_table = Item.__table__
-market_stats = MarketStats.__table__

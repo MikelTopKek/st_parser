@@ -1,9 +1,11 @@
 import sqlalchemy as sa
 from sqlalchemy import case
 
-from src.models import ItemQuality, ItemType
-from src.settings import engine, item_table, market_stats
+from src.models import Item, ItemQuality, ItemType, MarketStats
+from src.settings import engine
 
+item_table = Item.__table__
+market_stats = MarketStats.__table__
 
 def recent_date() -> str:
     """Send request and get recent trading date .
@@ -186,7 +188,7 @@ def worker_exp_request(limit: int, setup: list[ItemType], tier: int) -> list:
             )
         )
         .order_by(
-            item_table.c.base_crafting_time.desc()
+            item_table.c.base_crafting_time / item_table.c.worker_exp
         )
         .limit(limit + 10)
     ).fetchall()
