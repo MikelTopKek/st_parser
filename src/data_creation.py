@@ -6,11 +6,11 @@ import pandas as pd
 from src.constants import DATA_SPREADSHEED_FILENAME
 from src.database_requests import items_list
 from src.models import Item, ItemQuality, ItemType, MarketStats
-from src.settings import (ITEM_LIVE_URL, ITEM_NAMES_URL, ITEM_SHOP_URL,
-                          LOGGING, fresh_data_file, item_details_file,
+from src.settings import (LOGGING, fresh_data_file, item_details_file,
                           live_data_file, raw_data_file, session)
 from src.utils import (check_is_none, format_number, get_data,
                        quality_price_increase)
+from src.constants import ITEM_NAMES_URL, ITEM_SHOP_URL, ITEM_LIVE_URL
 
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main_logger')
