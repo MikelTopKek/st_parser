@@ -16,6 +16,14 @@ error_logger = logging.getLogger('error_logger')
 
 
 def get_best_blue_seven_items(limit: int) -> list:
+    """Get a list of the best items with 7+ tier and quality greater or equal to flawless.
+
+    Args:
+        limit (int): more limit -> more results displayed
+
+    Returns:
+        list: list of items
+    """
     res = best_blue_seven_plus_items_list(limit)
 
     logger.info(f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Quality{"":.<3}| Gold{"":.<6}|')
@@ -36,6 +44,16 @@ def get_best_blue_seven_items(limit: int) -> list:
 
 def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 0, additional_limit: int = 0,
                       tier: int = 0, min_exp: int = 0) -> None:
+    """Get a list of optimal items for the cheapest levelling .
+
+    Args:
+        max_cost_of_1m_exp (int, optional): max cost of 1 million experience in millions gold. Defaults to 1_000.
+        min_airship_power (int, optional): min airship power to display items with best airship power
+            (if 0 - display best items to levelling). Defaults to 0.
+        additional_limit (int, optional):  more limit -> more results displayed. Defaults to 0.
+        tier (int, optional): items with less than or equal to tier will be displayed in the result. Defaults to 0.
+        min_exp (int, optional): items with less than or equal experience will be displayed in the result. Defaults 0.
+    """
     logger.info('Filtering optimal items due to env params...')
 
     # Elements
@@ -134,6 +152,13 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
 
 
 def get_best_airship_item(additional_limit: int, min_airship_power: int, tier: int) -> None:
+    """Get the best items with the highest airship power.
+
+    Args:
+        additional_limit (int): more limit -> more results displayed
+        min_airship_power (int): items with more power than the minimum power will be displayed in the result
+        tier (int): items with less than or equal to tier will be displayed in the result
+    """
     get_optimal_items(
         additional_limit=additional_limit,
         min_airship_power=min_airship_power,
@@ -142,54 +167,86 @@ def get_best_airship_item(additional_limit: int, min_airship_power: int, tier: i
 
 
 def get_worker_exp(limit: int, setup: list[ItemType], tier: int) -> list:
+    """Get worker exp rate .
+
+    Args:
+        limit (int): more limit -> more results displayed
+        setup (list[ItemType]): list of item types which request used to get items
+        tier (int): items with less than or equal to tier will be displayed in the result
+    """
     res = worker_exp_request(limit=limit, setup=setup, tier=tier)
 
     logger.info(
         f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| '
         f'Worker1{"":.<3}| Worker2{"":.<3}| Worker3{"":.<3}| Crafting_time| Index(exp/h)|'
     )
+
     for item in res:
         number_of_workers = 1
         if item[5] != 'Empty':
             number_of_workers += 1
         if item[6] != 'Empty':
             number_of_workers += 1
+
         time_in_seconds = round(item[7] *
                                 all_workers_bonus_speed(item[4], item[5], item[6]) * guild_bonus_craft_speed, 0)
         item_time = datetime.timedelta(
             seconds=time_in_seconds
         )
+
         try:
             experience = round(item[3] / number_of_workers, 1)
             experience_print = format_number(experience)
-            # if round(experience/time_in_seconds*3600, 2) < 600 or item[2] < 4:
-            #     continue
+
             logger.info(
                 f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
                 f"{experience_print:.<10}| {item[4]:.<10}| {str(item[5]):.<10}|"
                 f" {str(item[6]):.<10}| {str(item_time):.<13}| {round(experience / time_in_seconds * 3600, 2):.<12}|"
             )
+
         except KeyError as e:
             error_logger.error(
                 f"{str(e)}----Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} {item[6]}is broken"
             )
 
-    return res
-
 
 def get_clothes_exp(limit: int, tier: int) -> None:
+    """Get best clothes with best experience rate to up worker level.
+
+    Args:
+        limit (int): more limit -> more results displayed
+        tier (int): items with less than or equal to tier will be displayed in the result
+    """
     setup = [ItemType.al, ItemType.am, ItemType.hm,
              ItemType.hl, ItemType.gl, ItemType.bl]
     get_worker_exp(limit=limit + 10, setup=setup, tier=tier)
 
 
 def get_meal_exp(limit: int, tier: int) -> None:
+    """Get best meals with best experience rate to up worker level.
+
+    Args:
+        limit (int): more limit -> more results displayed
+        tier (int): items with less than or equal to tier will be displayed in the result
+    """
     setup = [ItemType.fm]
     get_worker_exp(limit=limit, setup=setup, tier=tier)
 
 def sigil_profit(name: str, market_cost: float, material_cost: float,
                  blue_items_avg_cost: float, moonstone_cost: float, sigil_time_index: float) -> str:
+    """Generate a sigil profit .
 
+    Args:
+        name (str): sigil`s name
+        market_cost (float): market price of sigil`s
+        material_cost (float): cost of all materials to craft
+        blue_items_avg_cost (float): average cost of flawless items to craft
+        moonstone_cost (float): market price of moonstones
+        sigil_time_index (float): index, increase profit_index of sigil by crafting time (53 minutes -> index=60/53)
+
+    Returns:
+        str: info about certain sigil profit
+    """
     sigil_cost = sigil_craft_cost(blue_items_avg_cost=blue_items_avg_cost,
                                   moonstone_cost=moonstone_cost,
                                   material_cost=material_cost)
@@ -200,6 +257,14 @@ def sigil_profit(name: str, market_cost: float, material_cost: float,
             f'because of material cost: {format_number(material_cost)}.| Profit_index: {format_number(profit_index)}'
 
 def cheapest_sigil(limit: int) -> str:
+    """Calculates the cheapest price for a sigils.
+
+    Args:
+        limit (int): more limit -> more results displayed
+
+    Returns:
+        str: info about all sigils
+    """
     blue_res = get_best_blue_seven_items(limit=limit)
     blue_items_avg_cost: float = 0
 
@@ -238,6 +303,13 @@ def cheapest_sigil(limit: int) -> str:
 
 
 def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
+    """Get bestcrafting items which have best ratio highest price on market and lowest time to craft.
+
+    Args:
+        limit (int): more limit -> more results displayed
+        tier (int): items with less than or equal to tier will be displayed in the result
+        min_tier (int): items with greater than or equal to tier will be displayed in the result
+    """
     res = best_crafting_items(limit=limit * 3, tier=tier, min_tier=min_tier)
 
     logger.info(cheapest_sigil(limit=round(limit / 2)))

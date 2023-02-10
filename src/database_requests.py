@@ -6,7 +6,11 @@ from src.settings import engine, item_table, market_stats
 
 
 def recent_date() -> str:
+    """Send request and get recent trading date .
 
+    Returns:
+        str: datetime
+    """
     return engine.execute(
         sa.select([market_stats.c.created_at])
         .select_from(market_stats)
@@ -16,7 +20,14 @@ def recent_date() -> str:
 
 
 def best_blue_seven_plus_items_list(limit: int) -> list:
+    """Send request to db and get of the best items with 7+ tier and quality greater or equal to flawless.
 
+    Args:
+        limit (int): more limit -> more results displayed
+
+    Returns:
+        list: response with results
+    """
     return engine.execute(
         sa.select(
             [
@@ -48,7 +59,20 @@ def best_blue_seven_plus_items_list(limit: int) -> list:
 
 def items_list(exp: float, limit: int, tier: int,
                setup: list[ItemType], min_airship_power: int, max_cost_of_1m_exp: int) -> list:
+    """Send request and get a list of items in the market .
 
+    Args:
+        exp (float): item minimum experience
+        limit (int): more limit -> more results displayed
+        tier (int): items with less than or equal to tier will be displayed in the result
+        setup (list[ItemType]):  list of item types which request used to get items
+        min_airship_power (int):  min airship power to display items with best airship power
+            (if 0 - display best items to levelling)
+        max_cost_of_1m_exp (int):  max cost of 1 million experience in millions gold. Defaults to 1_000.
+
+    Returns:
+        list: response with results
+    """
     return engine.execute(
         sa.select(
             [
@@ -126,7 +150,16 @@ def items_list(exp: float, limit: int, tier: int,
 
 
 def worker_exp_request(limit: int, setup: list[ItemType], tier: int) -> list:
+    """Send request to db and get items with higher worker experience.
 
+    Args:
+        limit (int): more limit -> more results displayed
+        setup (list[ItemType]): list of item types which request used to get items
+        tier (int): items with less than or equal to tier will be displayed in the result
+
+    Returns:
+        list: response with results
+    """
     return engine.execute(
         sa.select(
             [
@@ -160,7 +193,17 @@ def worker_exp_request(limit: int, setup: list[ItemType], tier: int) -> list:
 
 
 def best_crafting_items(limit: int, tier: int, min_tier: int) -> list:
+    """Send request to db and get bestcrafting items which have best ratio highest price on market and lowest time
+        to craft.
 
+    Args:
+        limit (int): more limit -> more results displayed
+        tier (int): items with less than or equal to tier will be displayed in the result
+        min_tier (int): items with greater than or equal to tier will be displayed in the result
+
+    Returns:
+        list: response with results
+    """
     return engine.execute(
         sa.select(
             [
@@ -212,7 +255,11 @@ def best_crafting_items(limit: int, tier: int, min_tier: int) -> list:
 
 
 def items_with_blueprints() -> list:
+    """Send request to db and get all items with blueprints availability.
 
+    Returns:
+        list: response with results
+    """
     return engine.execute(
         sa.select(
             [
@@ -234,7 +281,15 @@ def items_with_blueprints() -> list:
 
 
 def get_item(item_uid: str, quality: ItemQuality=ItemQuality.common) -> list:
+    """Send request to db and get exact item due to params.
 
+    Args:
+        item_uid (str): item unique uid
+        quality (ItemQuality, optional): item quality on sale in market. Defaults to ItemQuality.common.
+
+    Returns:
+        list: response with results
+    """
     return engine.execute(
         sa.select(
             [

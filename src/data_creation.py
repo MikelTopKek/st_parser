@@ -18,19 +18,30 @@ error_logger = logging.getLogger('error_logger')
 
 
 def get_raw_data() -> None:
+    """Get raw items data (names and uid).
+    """
     get_data(ITEM_NAMES_URL, raw_data_file)
 
 
 def get_fresh_data() -> None:
+    """Get a fresh item data (all fields of item except bonus_crafting_time, receipt_availability and energy) .
+    """
     get_data(ITEM_SHOP_URL, fresh_data_file)
 
 
 def get_live_data() -> None:
+    """Get actual items from market which are currently on sale.
+    """
     logger.info("Getting live data...")
     get_data(ITEM_LIVE_URL, live_data_file)
 
 
 def create_item(item_data: dict) -> None:
+    """Create a new item in the database .
+
+    Args:
+        item_data (dict): item`s data
+    """
 
     if session.query(Item).filter(Item.uid == item_data['uid']).scalar():
         logger.info(f'Item {item_data["uid"]} already exists, skipping...')
@@ -43,6 +54,11 @@ def create_item(item_data: dict) -> None:
 
 
 def update_item(excel_item: dict) -> None:
+    """Update an item with data from excel spreadsheet .
+
+    Args:
+        excel_item (dict): dict with item data from .xlsx file
+    """
     try:
         updated_item = (
             session.query(Item).filter(Item.name == excel_item["Name"]).first()
@@ -66,13 +82,22 @@ def update_item(excel_item: dict) -> None:
 
 
 def create_marketstats_item(item_data: dict) -> None:
+    """Create a new MarketStats item which is currently on sale.
 
+    Args:
+        item_data (dict): item`s data with MarketStats fields
+    """
     new_item_market_stats = MarketStats(**item_data)
     session.add(new_item_market_stats)
     session.commit()
 
 
 def get_metadata() -> tuple:
+    """Extract item metadata from raw data file
+
+    Returns:
+        tuple: returns item names and values
+    """
     get_raw_data()
 
     with open(raw_data_file, encoding='UTF-8') as file:
@@ -95,6 +120,8 @@ def get_metadata() -> tuple:
 
 
 def creating_data() -> None:
+    """Creates a new items from fresh data
+    """
     item_names, item_values = get_metadata()
 
     get_fresh_data()
@@ -131,7 +158,8 @@ def creating_data() -> None:
 
 
 def create_live_data() -> None:
-
+    """Create all live items in the database which are currently on sale
+    """
     get_live_data()
 
     with open(live_data_file, encoding='UTF-8') as file:
@@ -183,6 +211,21 @@ def create_live_data() -> None:
 def get_section_item(name: str, exp: float, limit: int,
                      tier: int, setup: list, max_cost_of_1m_exp: int=1_000,
                      min_airship_power: int=0) -> list[float]:
+    """Get an items with exact ItemType.
+
+    Args:
+        name (str): item name
+        exp (float): item minimum experience
+        limit (int): more limit -> more results displayed
+        tier (int): items with less than or equal to tier will be displayed in the result
+        setup (list): list of item types which request used to get items
+        max_cost_of_1m_exp (int, optional): max cost of 1 million experience in millions gold. Defaults to 1_000.
+        min_airship_power (int, optional): min airship power to display items with best airship power
+            (if 0 - display best items to levelling). Defaults to 0.
+
+    Returns:
+        list[float]: avg price and avg experience of choosen items
+    """
     res = items_list(exp=exp, limit=limit, tier=tier, setup=setup,
                      min_airship_power=min_airship_power, max_cost_of_1m_exp=max_cost_of_1m_exp)
 
@@ -235,6 +278,8 @@ def get_section_item(name: str, exp: float, limit: int,
 
 
 def add_item_details_json() -> None:
+    """Add item details from excel to a JSON file .
+    """
 
     excel_data_df = pd.read_excel(
         DATA_SPREADSHEED_FILENAME, sheet_name="Blueprints")
@@ -245,6 +290,8 @@ def add_item_details_json() -> None:
 
 
 def get_item_details() -> None:
+    """Load item details from JSON file .
+    """
     add_item_details_json()
 
     with open(item_details_file, encoding='UTF-8') as file:

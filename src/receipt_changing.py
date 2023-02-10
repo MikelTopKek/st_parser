@@ -12,6 +12,8 @@ error_logger = logging.getLogger('error_logger')
 
 
 def create_csv_with_blueprints() -> None:
+    """create a csv of blueprints
+    """
     res = items_with_blueprints()
     blueprints_dict: list[dict] = []
 
@@ -31,6 +33,8 @@ def create_csv_with_blueprints() -> None:
 
 
 def update_db_with_blueprints() -> None:
+    """Update items with blueprints receipts availability
+    """
 
     blueprints = pd.read_csv('./datafiles/blueprints.csv', header=None, index_col=0, on_bad_lines='skip')
     my_dict = blueprints.to_dict(orient='records')

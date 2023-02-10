@@ -11,6 +11,8 @@ Base = declarative_base(metadata=metadata)
 
 
 class ItemType(enum.Enum):
+    """Returns a class representing the item type.
+    """
     ws = "sword"
     wa = "axe"
     wd = "dagger"
@@ -49,6 +51,8 @@ class ItemType(enum.Enum):
 
 
 class ItemQuality(enum.Enum):
+    """Returns a class representing the item quality .
+    """
     legendary = "legendary"
     epic = "epic"
     uncommon = "uncommon"
@@ -57,6 +61,8 @@ class ItemQuality(enum.Enum):
 
 
 class MarketStats(Base):  # pylint: disable=too-few-public-methods
+    """Class with a table contains items which are currently on sale .
+    """
     __tablename__ = "marketstats"
 
     id: int = Column(Integer, primary_key=True)
@@ -71,6 +77,8 @@ class MarketStats(Base):  # pylint: disable=too-few-public-methods
 
 
 class Item(Base):  # pylint: disable=too-few-public-methods
+    """Class with a table contains items details .
+    """
     __tablename__ = "item"
 
     uid: str = Column(String, primary_key=True)
