@@ -17,20 +17,20 @@ logger = logging.getLogger('main_logger')
 error_logger = logging.getLogger('error_logger')
 
 
-def get_raw_data():
+def get_raw_data() -> None:
     get_data(ITEM_NAMES_URL, raw_data_file)
 
 
-def get_fresh_data():
+def get_fresh_data() -> None:
     get_data(ITEM_SHOP_URL, fresh_data_file)
 
 
-def get_live_data():
+def get_live_data() -> None:
     logger.info("Getting live data...")
     get_data(ITEM_LIVE_URL, live_data_file)
 
 
-def create_item(item_data):
+def create_item(item_data: dict) -> None:
 
     if session.query(Item).filter(Item.uid == item_data['uid']).scalar():
         logger.info(f'Item {item_data["uid"]} already exists, skipping...')
@@ -42,7 +42,7 @@ def create_item(item_data):
     logger.info('Item %s %s succesfully created!', item_data["uid"], item_data["tier"])
 
 
-def update_item(excel_item):
+def update_item(excel_item: dict) -> None:
     try:
         updated_item = (
             session.query(Item).filter(Item.name == excel_item["Name"]).first()
@@ -50,33 +50,40 @@ def update_item(excel_item):
         if updated_item.airship_power == excel_item["Airship Power"]:
             logger.info(f'Item {updated_item.name} alredy have the same airship power. Skipping...')
             return
+
         updated_item.airship_power = excel_item["Airship Power"]
         if updated_item.worker2 is None:
             updated_item.worker2 = "Empty"
         if updated_item.worker3 is None:
             updated_item.worker3 = "Empty"
+
         session.commit()
+
         logger.info(f'Item {updated_item.name} updated with airship power {updated_item.airship_power} successfully!')
+
     except TypeError as e:
         error_logger.error(f'Error with item {excel_item["Name"]} Exc:{str(e)}')
 
 
-def create_marketstats_item(item_data):
+def create_marketstats_item(item_data: dict) -> None:
 
     new_item_market_stats = MarketStats(**item_data)
     session.add(new_item_market_stats)
     session.commit()
 
 
-def get_metadata():
+def get_metadata() -> tuple:
     get_raw_data()
+
     with open(raw_data_file, encoding='UTF-8') as file:
         data = json.load(file)
         items = {}
+
         for field in data["texts"]:
             items[field] = data["texts"][field]
         item_names = []
         item_values = []
+
         for i, field in enumerate(items):
             if 8844 <= i <= 11300:
                 if field.find("_name_o") == -1 and field.find("_name") != -1:
@@ -87,17 +94,19 @@ def get_metadata():
     return item_names, item_values
 
 
-def creating_data():
+def creating_data() -> None:
     item_names, item_values = get_metadata()
 
     get_fresh_data()
 
-    item_values_dict = dict(zip(item_names, item_values))
+    item_values_dict: dict = dict(zip(item_names, item_values))
     with open(fresh_data_file, encoding='UTF-8') as file:
         data = json.load(file)
+
         for field in data:
             if data[field]["uid"] in ["uncommon", "flawless", "epic", "legendary"]:
                 continue
+
             item_data = {
                 "name": item_values_dict[data[field]["uid"]],
                 "uid": data[field]["uid"],
@@ -114,13 +123,14 @@ def creating_data():
                 "energy_cost": data[field]["speedup"],
                 "base_crafting_time": data[field]["time"],
             }
+
             try:
                 create_item(item_data)
             except KeyError as e:
                 error_logger.error(str(e))
 
 
-def create_live_data():
+def create_live_data() -> None:
 
     get_live_data()
 
@@ -136,6 +146,7 @@ def create_live_data():
                         quality = ItemQuality.common.value
                     else:
                         quality = live_item["tag1"]
+
                     item_data = {
                         "item_id": item.uid,
                         "quality": quality,
@@ -146,7 +157,8 @@ def create_live_data():
                         "received_at": live_item["createdAt"],
                     }
                     create_marketstats_item(item_data)
-                except AttributeError as e:
+
+                except KeyError as e:
                     logger.info(
                         f'uid:{live_item["uid"]} tier:{live_item["tier"]} {live_item["tType"]} doesn`t exist. '
                         f'Error: {str(e)} '
@@ -158,17 +170,21 @@ def create_live_data():
                         "item_type": ItemType.xm,
                         "image": "image",
                     }
+
                     try:
                         create_item(item_data)
                         logger.info(f'Succesfully created {live_item["uid"]} in db.')
+
                     except KeyError as error:
                         error_logger.error(f'Error with creating item {live_item["uid"]}. {str(error)}')
                     continue
 
 
-def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_airship_power=0):
-    res = items_list(exp, limit, tier, setup,
-                     min_airship_power, max_cost_of_1m_exp)
+def get_section_item(name: str, exp: float, limit: int,
+                     tier: int, setup: list, max_cost_of_1m_exp: int=1_000,
+                     min_airship_power: int=0) -> list[float]:
+    res = items_list(exp=exp, limit=limit, tier=tier, setup=setup,
+                     min_airship_power=min_airship_power, max_cost_of_1m_exp=max_cost_of_1m_exp)
 
     logger.info(f"{name}")
     if min_airship_power > 0:
@@ -181,26 +197,31 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
             f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| Quality{"":.<3}|'
             f' Gold{"":.<6}| Base gold| Index| 1M EXP cost{"":.<0}|'
         )
-    avg = []
-    avg_exp = []
+    avg: list = []
+    avg_exp: list = []
     for item in res:
         scale = quality_price_increase(item[4])
+
         try:
             airpower = ""
             million_exp_cost = f"{round((item[5]-item[8])/item[3], 1):.{4}}M"
             million_exp_cost = f'{million_exp_cost}{"":.<4}|'
             gold_value = format_number(item[5])
             experience = format_number(item[3])
+
             if min_airship_power > 0:
                 airpower = f"{item[7]*scale:.<8}|"
                 million_exp_cost = ""
+
             logger.info(
                 f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
                 f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| {format_number(item[8]):.<9}| "
                 f"{round((item[5] - item[8]) / pow(item[3], 2) * 10000, 2):.<5}| {million_exp_cost} {airpower}"
             )
+
             avg.append((item[5] - item[8]) / item[3])
             avg_exp.append(item[3])
+
         except KeyError:
             error_logger.error(
                 f"Item {item[0]} {item[1]} {item[2]} {item[3]} {item[4]} {item[5]} is broken"
@@ -213,7 +234,7 @@ def get_section_item(name, exp, limit, tier, setup, max_cost_of_1m_exp=1e3, min_
     return [0, 0]
 
 
-def add_item_details_json():
+def add_item_details_json() -> None:
 
     excel_data_df = pd.read_excel(
         DATA_SPREADSHEED_FILENAME, sheet_name="Blueprints")
@@ -223,8 +244,9 @@ def add_item_details_json():
         file.write(json_str)
 
 
-def get_item_details():
+def get_item_details() -> None:
     add_item_details_json()
+
     with open(item_details_file, encoding='UTF-8') as file:
         excel_json_data = json.load(file)
 

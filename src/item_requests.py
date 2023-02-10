@@ -34,8 +34,8 @@ def get_best_blue_seven_items(limit: int) -> list:
     return res
 
 
-def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0, additional_limit=0,
-                      tier: int = 0, min_exp: int = 0):
+def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 0, additional_limit: int = 0,
+                      tier: int = 0, min_exp: int = 0) -> None:
     logger.info('Filtering optimal items due to env params...')
 
     # Elements
@@ -125,11 +125,11 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
 
     hours_to_sell_items: float = number_of_items / SOLD_PER_HOUR  # Time to spend to sell all items
     if min_airship_power == 0:
-        logger.info(f'Exp needed: {experience} millions, sold per hour = {SOLD_PER_HOUR}.'
+        logger.info(f'Exp needed: {experience} millions, sold per hour = {SOLD_PER_HOUR}.\n'
                     f'AVG item experience: {format_number(avg_exp_per_item)} exp, '
-                    f'avg 1m experience cost: {format_number(avg_1m_exp_cost)}m.'
-                    f'Need {format_number(number_of_items)} items.'
-                    f'Gold we need to sell items on {format_number(gold_required)}'
+                    f'avg 1m experience cost: {format_number(avg_1m_exp_cost)}m.\n'
+                    f'Need {format_number(number_of_items)} items.\n'
+                    f'Gold we need to sell items on {format_number(gold_required)}.\n'
                     f'Time to spend to sell all items: {format_number(hours_to_sell_items)} hours.')
 
 
@@ -141,8 +141,8 @@ def get_best_airship_item(additional_limit: int, min_airship_power: int, tier: i
     )
 
 
-def get_worker_exp(limit: int, setup: list[ItemType], tier: int):
-    res = worker_exp_request(limit, setup, tier)
+def get_worker_exp(limit: int, setup: list[ItemType], tier: int) -> list:
+    res = worker_exp_request(limit=limit, setup=setup, tier=tier)
 
     logger.info(
         f'Type{"":.<12}| Tier{"":.<0}| Item{"":.<21}| Exp{"":.<7}| '
@@ -180,12 +180,12 @@ def get_worker_exp(limit: int, setup: list[ItemType], tier: int):
 def get_clothes_exp(limit: int, tier: int) -> None:
     setup = [ItemType.al, ItemType.am, ItemType.hm,
              ItemType.hl, ItemType.gl, ItemType.bl]
-    get_worker_exp(limit + 10, setup, tier)
+    get_worker_exp(limit=limit + 10, setup=setup, tier=tier)
 
 
 def get_meal_exp(limit: int, tier: int) -> None:
     setup = [ItemType.fm]
-    get_worker_exp(limit, setup, tier)
+    get_worker_exp(limit=limit, setup=setup, tier=tier)
 
 def sigil_profit(name: str, market_cost: float, material_cost: float,
                  blue_items_avg_cost: float, moonstone_cost: float, sigil_time_index: float) -> str:
@@ -199,9 +199,9 @@ def sigil_profit(name: str, market_cost: float, material_cost: float,
     return f'{name} sigil costs {profit} per {NUMBER_OF_CRAFT_SLOTS} slots ' \
             f'because of material cost: {format_number(material_cost)}.| Profit_index: {format_number(profit_index)}'
 
-def cheapest_sigil(limit):
+def cheapest_sigil(limit: int) -> str:
     blue_res = get_best_blue_seven_items(limit=limit)
-    blue_items_avg_cost = 0
+    blue_items_avg_cost: float = 0
 
     for item in blue_res:
         try:
@@ -211,13 +211,13 @@ def cheapest_sigil(limit):
 
     blue_items_avg_cost /= limit
 
-    moonstone_cost = get_item('greatermoon')[1]
-    obsidian_cost = get_item('obsidian')[1]
-    magmacore_cost = get_item('magmacore')[1]
-    crabclaw_cost = get_item('crabclaw')[1]
-    blue_sigil_cost = get_item('sparksigil2')[1]
-    red_sigil_cost = get_item('mightsigil2')[1]
-    green_sigil_cost = get_item('gracesigil2')[1]
+    moonstone_cost: int = get_item('greatermoon')[1]
+    obsidian_cost: int = get_item('obsidian')[1]
+    magmacore_cost: int = get_item('magmacore')[1]
+    crabclaw_cost: int = get_item('crabclaw')[1]
+    blue_sigil_cost: int = get_item('sparksigil2')[1]
+    red_sigil_cost: int = get_item('mightsigil2')[1]
+    green_sigil_cost: int = get_item('gracesigil2')[1]
 
     sigil_time_index: float = 60 / 53
 
@@ -240,7 +240,7 @@ def cheapest_sigil(limit):
 def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
     res = best_crafting_items(limit=limit * 3, tier=tier, min_tier=min_tier)
 
-    logger.info(cheapest_sigil(limit=round(limit / 2, 0)))
+    logger.info(cheapest_sigil(limit=round(limit / 2)))
 
     logger.info(
         f'Type{"":.<12}| Tier{"":.<0}| Name{"":.<21}| '
@@ -256,7 +256,6 @@ def get_best_crafting_items(limit: int, tier: int, min_tier: int) -> None:
             minutes=time_in_minutes
         )
         try:
-            # if round(gold_value / time_in_minutes * 60 / 1_000_000, 2) > 1:
             if item[8] > 0:
                 gold_value = item[8]
                 is_only_crystal = 'For gold'

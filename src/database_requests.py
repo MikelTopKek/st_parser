@@ -5,9 +5,9 @@ from src.models import ItemQuality, ItemType
 from src.settings import engine, item_table, market_stats
 
 
-def recent_date():
-    conn = engine
-    return conn.execute(
+def recent_date() -> str:
+
+    return engine.execute(
         sa.select([market_stats.c.created_at])
         .select_from(market_stats)
         .order_by(market_stats.c.created_at.desc())
@@ -15,9 +15,9 @@ def recent_date():
     ).fetchall()[0][0]
 
 
-def best_blue_seven_plus_items_list(limit):
-    conn = engine
-    return conn.execute(
+def best_blue_seven_plus_items_list(limit: int) -> list:
+
+    return engine.execute(
         sa.select(
             [
                 item_table.c.name,
@@ -46,9 +46,10 @@ def best_blue_seven_plus_items_list(limit):
     ).fetchall()
 
 
-def items_list(exp, limit, tier, setup, min_airship_power, max_cost_of_1m_exp):
-    conn = engine
-    return conn.execute(
+def items_list(exp: float, limit: int, tier: int,
+               setup: list[ItemType], min_airship_power: int, max_cost_of_1m_exp: int) -> list:
+
+    return engine.execute(
         sa.select(
             [
                 item_table.c.name,
@@ -124,10 +125,9 @@ def items_list(exp, limit, tier, setup, min_airship_power, max_cost_of_1m_exp):
     ).fetchall()
 
 
-def worker_exp_request(limit, setup, tier):
+def worker_exp_request(limit: int, setup: list[ItemType], tier: int) -> list:
 
-    conn = engine
-    return conn.execute(
+    return engine.execute(
         sa.select(
             [
                 item_table.c.name,
@@ -159,9 +159,9 @@ def worker_exp_request(limit, setup, tier):
     ).fetchall()
 
 
-def best_crafting_items(limit, tier, min_tier):
-    conn = engine
-    return conn.execute(
+def best_crafting_items(limit: int, tier: int, min_tier: int) -> list:
+
+    return engine.execute(
         sa.select(
             [
                 item_table.c.name,
@@ -211,10 +211,9 @@ def best_crafting_items(limit, tier, min_tier):
     ).fetchall()
 
 
-def items_with_blueprints():
+def items_with_blueprints() -> list:
 
-    conn = engine
-    return conn.execute(
+    return engine.execute(
         sa.select(
             [
                 item_table.c.name,
@@ -234,10 +233,9 @@ def items_with_blueprints():
     ).fetchall()
 
 
-def get_item(item_uid, quality=ItemQuality.common):
-    conn = engine
+def get_item(item_uid: str, quality: ItemQuality=ItemQuality.common) -> list:
 
-    return conn.execute(
+    return engine.execute(
         sa.select(
             [
                 item_table.c.uid,

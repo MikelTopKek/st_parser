@@ -11,7 +11,7 @@ logger = logging.getLogger('main_logger')
 error_logger = logging.getLogger('error_logger')
 
 
-def create_csv_with_blueprints():
+def create_csv_with_blueprints() -> None:
     res = items_with_blueprints()
     blueprints_dict: list[dict] = []
 
@@ -28,10 +28,9 @@ def create_csv_with_blueprints():
     raw_data.to_csv('./datafiles/blueprints.csv')
     # print(raw_data)
 
-    return raw_data
 
 
-def update_db_with_blueprints():
+def update_db_with_blueprints() -> None:
 
     blueprints = pd.read_csv('./datafiles/blueprints.csv', header=None, index_col=0, on_bad_lines='skip')
     my_dict = blueprints.to_dict(orient='records')

@@ -18,8 +18,8 @@ logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main_logger')
 
 
-def main():
-    request_type = sys.argv[1]
+def main() -> None:
+    request_type: str = sys.argv[1]
 
     with engine.connect() as conn:
         with conn.begin():
@@ -61,7 +61,7 @@ def main():
 
     elif request_type == "best_craft":
         logger.info('Getting best crafting items')
-        # create_live_data()
+        create_live_data()
         get_best_crafting_items(
             limit=ADDITIONAL_LIMIT, tier=TIER, min_tier=MIN_TIER)
 

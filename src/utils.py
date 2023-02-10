@@ -1,9 +1,11 @@
 import json
 import logging.config
+from typing import Optional
 
 import requests
 
 from src.models import ItemQuality
+from src.numeric_utils import to_int
 from src.settings import LOGGING, worker_lvl_crafting_bonus_list, workers_lvl
 
 logging.config.dictConfig(LOGGING)
@@ -11,7 +13,7 @@ logger = logging.getLogger('main_logger')
 error_logger = logging.getLogger('error_logger')
 
 
-def get_data(url, file_name):
+def get_data(url: str, file_name: Optional[str]) -> None:
     request = requests.get(url=url, timeout=5)
     data = request.json()
     json_data = json.dumps(data, indent=4)
@@ -29,14 +31,16 @@ def format_number(number: float) -> str:
     return str(round(number, 1))
 
 
-def check_is_none(number):
+def check_is_none(number: int) -> int:
     if number is None:
         return 0
 
     return number
 
 
-def quality_price_increase(item):
+def quality_price_increase(item: ItemQuality) -> float:
+
+    scale: float
     if item == ItemQuality.common:
         scale = 1
     elif item == ItemQuality.uncommon:
@@ -51,19 +55,20 @@ def quality_price_increase(item):
     return scale
 
 
-def worker_bonus_speed(worker):
+def worker_bonus_speed(worker: str) -> float:
     if worker == 'Empty' or worker is None:
         return 0
 
     try:
-        level = int(workers_lvl[worker])
+        level = to_int(workers_lvl[worker])
     except KeyError as e:
         error_logger.error(f'KeyError when worker_bonus_speed on {e}: {worker}')
         level = 0
     return worker_lvl_crafting_bonus_list[level] * 0.01
 
 
-def all_workers_bonus_speed(worker1, worker2, worker3):
+def all_workers_bonus_speed(worker1: str, worker2: str, worker3: str) -> float:
+
     bonus1 = 1 - worker_bonus_speed(worker1)
     bonus2 = 1 - worker_bonus_speed(worker2)
     bonus3 = 1 - worker_bonus_speed(worker3)
