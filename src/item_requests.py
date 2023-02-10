@@ -115,7 +115,6 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
     )
     avg_1m_exp_cost: float = (accesoires_avg[0] + helmets_avg[0] + elements_avg[0] + brestpates_avg[0]
                               + misc_armor_avg[0] + weapons_rack_avg[0] + weapons_table_avg[0]) / 7  # in millions
-    sold_per_hour: int = SOLD_PER_HOUR
     avg_exp_per_item: float = (accesoires_avg[1] + helmets_avg[1] + elements_avg[1] + brestpates_avg[1]
                                + misc_armor_avg[1] + weapons_rack_avg[1] + weapons_table_avg[1]) / 7  # in millions
     experience: int = NEEDED_EXP  # in millions, how much exp need to get
@@ -124,14 +123,14 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1e3, min_airship_power: int = 0,
 
     gold_required: float = experience * avg_1m_exp_cost  # in millions, how much gold we need to up
 
-    hours_to_sell_items: float = number_of_items / sold_per_hour  # Time to spend to sell all items
-
-    logger.info(f'Exp needed: {experience} millions, sold per hour = {sold_per_hour}.'
-                f'AVG item experience: {format_number(avg_exp_per_item)} exp, '
-                f'avg 1m experience cost: {format_number(avg_1m_exp_cost)}m.'
-                f'Need {format_number(number_of_items)} items.'
-                f'Gold we need to sell items on {format_number(gold_required)}'
-                f'Time to spend to sell all items: {format_number(hours_to_sell_items)} hours.')
+    hours_to_sell_items: float = number_of_items / SOLD_PER_HOUR  # Time to spend to sell all items
+    if min_airship_power == 0:
+        logger.info(f'Exp needed: {experience} millions, sold per hour = {SOLD_PER_HOUR}.'
+                    f'AVG item experience: {format_number(avg_exp_per_item)} exp, '
+                    f'avg 1m experience cost: {format_number(avg_1m_exp_cost)}m.'
+                    f'Need {format_number(number_of_items)} items.'
+                    f'Gold we need to sell items on {format_number(gold_required)}'
+                    f'Time to spend to sell all items: {format_number(hours_to_sell_items)} hours.')
 
 
 def get_best_airship_item(additional_limit: int, min_airship_power: int, tier: int) -> None:
