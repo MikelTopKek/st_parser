@@ -1,8 +1,9 @@
 import sqlalchemy as sa
 from sqlalchemy import case
 
-from src.models import Item, ItemQuality, ItemType, MarketStats
+from src.models import ItemQuality, ItemType, Item, MarketStats
 from src.settings import engine
+
 
 item_table = Item.__table__
 market_stats = MarketStats.__table__
