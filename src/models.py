@@ -1,13 +1,12 @@
-# pylint: disable=C0103
-import datetime
 import enum
+from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Enum, Float, ForeignKey,
                         Integer, MetaData, String)
 from sqlalchemy.orm import declarative_base
 
 metadata = MetaData()
-Base = declarative_base(metadata=metadata)
+ModelBase = declarative_base(metadata=metadata)
 
 
 class ItemType(enum.Enum):
@@ -60,29 +59,29 @@ class ItemQuality(enum.Enum):
     common = "common"
 
 
-class MarketStats(Base):  # pylint: disable=too-few-public-methods
+class MarketStats(ModelBase):
     """Class with a table contains items which are currently on sale .
     """
     __tablename__ = "marketstats"
 
     id: int = Column(Integer, primary_key=True)
     item_id: str = Column(String, ForeignKey("item.uid"))
-    quality: Enum(ItemQuality) = Column(Enum(ItemQuality))
+    quality: ItemQuality = Column(Enum(ItemQuality))
     gold_price: int = Column(Integer)
     gold_qty: int = Column(Integer)
     gems_price: int = Column(Integer)
     gems_qty: int = Column(Integer)
-    received_at: DateTime = Column(DateTime)
-    created_at: DateTime = Column(DateTime, default=datetime.datetime.utcnow())
+    received_at: datetime = Column(DateTime)
+    created_at: datetime = Column(DateTime, default=datetime.utcnow())
 
 
-class Item(Base):  # pylint: disable=too-few-public-methods
+class Item(ModelBase):  # pylint: disable=too-few-public-methods
     """Class with a table contains items details .
     """
     __tablename__ = "item"
 
     uid: str = Column(String, primary_key=True)
-    item_type: Enum(ItemType) = Column(Enum(ItemType))
+    item_type: ItemType = Column(Enum(ItemType))
     name: str = Column(String)
     tier: int = Column(Integer)
     image: str = Column(String)
