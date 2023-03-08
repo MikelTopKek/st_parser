@@ -57,14 +57,17 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
     logger.info('Filtering optimal items due to env params...')
 
     # Elements
-    elements_avg = get_section_item("Elements", min_exp, 10 + additional_limit,
-                     tier, [ItemType.z], max_cost_of_1m_exp,
+    elements_avg = get_section_item("Elements",
+                     min_exp / 1.5,
+                     10 + additional_limit,
+                     tier, [ItemType.z],
+                     max_cost_of_1m_exp,
                      min_airship_power,
                      )
     # Breastplates
     brestpates_avg = get_section_item(
         "Breastplates",
-        min_exp * 1.2,
+        min_exp,
         3 + additional_limit,
         tier,
         [ItemType.ah, ItemType.am, ItemType.al],
@@ -74,7 +77,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
     # Helmets
     helmets_avg = get_section_item(
         "Helmets",
-        min_exp * 1.5,
+        min_exp,
         3 + additional_limit,
         tier,
         [ItemType.hh, ItemType.hm, ItemType.hl, ItemType.xc],
@@ -84,7 +87,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
     # Weapons (on rack)
     weapons_rack_avg = get_section_item(
         "Weapons on rack",
-        min_exp * 1.5,
+        min_exp,
         3 + additional_limit,
         tier,
         [ItemType.ws, ItemType.wa, ItemType.wm, ItemType.wp, ItemType.wt],
@@ -94,7 +97,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
     # Weapons (on table)
     weapons_table_avg = get_section_item(
         "Weapons on table",
-        min_exp * 1.5,
+        min_exp,
         3 + additional_limit,
         tier,
         [ItemType.wd, ItemType.ww, ItemType.wc,
@@ -115,7 +118,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
     # Accessories
     accesoires_avg = get_section_item(
         "Accessories",
-        min_exp * 1.4,
+        min_exp,
         5 + additional_limit,
         tier,
         [
@@ -139,7 +142,7 @@ def get_optimal_items(max_cost_of_1m_exp: int = 1_000, min_airship_power: int = 
 
     number_of_items: float = experience * 1_000_000 / avg_exp_per_item if avg_exp_per_item > 0 else 0
 
-    gold_required: float = experience * avg_1m_exp_cost  # in millions, how much gold we need to up
+    gold_required: float = experience * avg_1m_exp_cost * 1_000_000  # in millions, how much gold we need to up
 
     hours_to_sell_items: float = number_of_items / SOLD_PER_HOUR  # Time to spend to sell all items
     if min_airship_power == 0:
