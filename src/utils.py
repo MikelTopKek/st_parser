@@ -36,11 +36,14 @@ def format_number(number: float) -> str:
     Returns:
         str: formatted string
     """
-    if number >= 1000000:
-        return f"{round(number / 1000000, 1)}M"
+    if number >= 1_000_000_000:
+        return f"{round(number / 1_000_000_000, 1)} billions"
 
-    if number >= 1000:
-        return f"{round(number / 1000, 1)}k"
+    if number >= 1_000_000:
+        return f"{round(number / 1_000_000, 1)}M"
+
+    if number >= 1_000:
+        return f"{round(number / 1_000, 1)}k"
 
     return str(round(number, 1))
 
