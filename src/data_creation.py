@@ -89,7 +89,6 @@ def create_marketstats_item(item_data: dict) -> None:
     """
     new_item_market_stats = MarketStats(**item_data)
     session.add(new_item_market_stats)
-    session.commit()
 
 
 def get_metadata() -> tuple:
@@ -206,6 +205,7 @@ def create_live_data() -> None:
                     except KeyError as error:
                         error_logger.error(f'Error with creating item {live_item["uid"]}. {str(error)}')
                     continue
+        session.commit()
 
 
 def get_section_item(name: str, min_exp: float, limit: int,
