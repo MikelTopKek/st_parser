@@ -7,3 +7,4 @@ python-dotenv~=0.15.0
 psycopg2-binary==2.9.5
 pre-commit==3.0.4
 pylint==2.16.1
+sqlalchemy[mypy]==1.4.45

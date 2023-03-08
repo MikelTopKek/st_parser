@@ -1,15 +1,19 @@
-import pandas as pd
 import logging.config
+
+import pandas as pd
+
 from src.database_requests import items_with_blueprints
 from src.models import Item
-from src.settings import session, LOGGING
+from src.settings import LOGGING, session
 
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main_logger')
 error_logger = logging.getLogger('error_logger')
 
 
-def create_csv_with_blueprints():
+def create_csv_with_blueprints() -> None:
+    """create a csv of blueprints
+    """
     res = items_with_blueprints()
     blueprints_dict: list[dict] = []
 
@@ -26,10 +30,11 @@ def create_csv_with_blueprints():
     raw_data.to_csv('./datafiles/blueprints.csv')
     # print(raw_data)
 
-    return raw_data
 
 
-def update_db_with_blueprints():
+def update_db_with_blueprints() -> None:
+    """Update items with blueprints receipts availability
+    """
 
     blueprints = pd.read_csv('./datafiles/blueprints.csv', header=None, index_col=0, on_bad_lines='skip')
     my_dict = blueprints.to_dict(orient='records')
@@ -47,7 +52,7 @@ def update_db_with_blueprints():
                 updated_item.receipt_availability = bool(int(item[5]))
                 logger.info(f'Update {updated_item.name}, availability now is {updated_item.receipt_availability}')
 
-        except Exception as e:  # pylint: disable=W0718
+        except KeyError as e:
             error_logger.error(f'{str(e)} with item {item[4]}')
 
         session.commit()
