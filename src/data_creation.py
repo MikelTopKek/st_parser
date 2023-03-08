@@ -186,7 +186,7 @@ def create_live_data() -> None:
                     }
                     create_marketstats_item(item_data)
 
-                except KeyError as e:
+                except AttributeError as e:
                     logger.info(
                         f'uid:{live_item["uid"]} tier:{live_item["tier"]} {live_item["tType"]} doesn`t exist. '
                         f'Error: {str(e)} '
@@ -208,7 +208,7 @@ def create_live_data() -> None:
                     continue
 
 
-def get_section_item(name: str, exp: float, limit: int,
+def get_section_item(name: str, min_exp: float, limit: int,
                      tier: int, setup: list, max_cost_of_1m_exp: int=1_000,
                      min_airship_power: int=0) -> list[float]:
     """Get an items with exact ItemType.
@@ -226,7 +226,7 @@ def get_section_item(name: str, exp: float, limit: int,
     Returns:
         list[float]: avg price and avg experience of choosen items
     """
-    res = items_list(exp=exp, limit=limit, tier=tier, setup=setup,
+    res = items_list(min_exp=min_exp, limit=limit, tier=tier, setup=setup,
                      min_airship_power=min_airship_power, max_cost_of_1m_exp=max_cost_of_1m_exp)
 
     logger.info(f"{name}")
@@ -247,7 +247,7 @@ def get_section_item(name: str, exp: float, limit: int,
 
         try:
             airpower = ""
-            million_exp_cost = f"{round((item[5]-item[8])/item[3], 1):.{4}}M"
+            million_exp_cost = f"{round((item[5]-item[8]) / item[3], 1):.{4}}M"
             million_exp_cost = f'{million_exp_cost}{"":.<4}|'
             gold_value = format_number(item[5])
             experience = format_number(item[3])
@@ -255,7 +255,8 @@ def get_section_item(name: str, exp: float, limit: int,
             if min_airship_power > 0:
                 airpower = f"{item[7]*scale:.<8}|"
                 million_exp_cost = ""
-
+            # if (item[5] - item[8]) / item[3] > max_cost_of_1m_exp or item[3] < exp:
+            #     continue
             logger.info(
                 f"{item[1].value:.<16}| {item[2]:.<4}| {item[0]:.<25}| "
                 f"{experience:.<10}| {item[4].value:.<10}| {gold_value:.<10}| {format_number(item[8]):.<9}| "
