@@ -1,16 +1,48 @@
+ci:
+    autofix_commit_msg: |
+        [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+        for more information, see https://pre-commit.ci
+    autofix_prs: true
+    autoupdate_branch: ''
+    autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false
+
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.2.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
     hooks:
     -   id: check-ast
     -   id: check-case-conflict
     -   id: check-merge-conflict
     -   id: debug-statements
     -   id: check-yaml
-    -   id: trailing-whitespace
 
--   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.4.4
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.3.1
     hooks:
-    - id: autopep8
-    exclude: '.json'
+    - id: pyupgrade
+      args: [--py36-plus]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.4
+    hooks:
+    - id: bandit
+      args:
+      - --skip
+      - B101
+
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args:
+          [
+            "-rn", # Only display messages
+            "--rcfile=.pylintrc", # Link to your config file
+          ]

@@ -7,7 +7,7 @@ Core technologies used:
 * Postgres
 * SQLAlchemy
 
-env folder contains .env file with environmental variables. 
+env folder contains .env file with environmental variables.
 
 ## Fast start
 1. Clone project from gitlab with HTTPS or SSH:
@@ -20,7 +20,13 @@ env folder contains .env file with environmental variables.
 
 4. Fill db with data
 
-5. Run help to select command you need 
+5. Run help to select command you need
+
+#### If you want to add receipts that you have, you need:
+   * Run receipt_changing to create blueprints.csv file
+   * Modify column blueprints_availability (1 - you have receipt)
+   * Save blueprints.csv
+
 
 Get available commands:
 make help
